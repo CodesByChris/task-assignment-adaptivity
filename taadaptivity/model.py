@@ -4,6 +4,7 @@ from mesa import Model
 from mesa.space import NetworkGrid
 from mesa.time import SimultaneousActivation
 from networkx import adjacency_matrix, DiGraph, empty_graph
+from numpy.random import default_rng
 from scipy.stats import entropy
 from .agent import TaskAgent
 
@@ -13,6 +14,7 @@ class TaskModel(Model):
 
     Attributes:
         num_agents: Number of agents.
+        rng: Numpy RNG instance to use when sampling random numbers.
     """
 
     def __init__(self, max_steps: int, num_agents: int, sigma: float, loc: float = 50, performance: float = 0.01, init_task_count: int = 15):
@@ -20,16 +22,17 @@ class TaskModel(Model):
         super().__init__()
         self.max_steps = max_steps
         self.num_agents = num_agents
-        self.sigma = sigma
+
+        # Initialize numpy RNG
+        self.rng = default_rng(self._seed)
 
         # Initialize agents and mesa setup
         self.schedule = SimultaneousActivation(self)
         self.grid = NetworkGrid(empty_graph(num_agents, DiGraph))
         for agent_id in range(num_agents):
-            # A negative fitness is possible but the agent fails immediately,
-            # because the number of its tasks are counts, i.e. at least 0.
-            fitness = self.random.normalvariate(mu=loc, sigma=sigma)
-            agent = TaskAgent(agent_id, self, fitness, performance, init_task_count)
+            # Sample agent's fitness
+            curr_agent_params = agent_params.copy()
+            curr_agent_params["fitness"] = self.rng.normal(**fitness_params, size=None)
             self.schedule.add(agent)
             self.grid.place_agent(agent, agent_id)
 
