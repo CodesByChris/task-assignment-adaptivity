@@ -1,5 +1,6 @@
 """Model class."""
 
+from typing import Dict
 from mesa import Model
 from mesa.space import NetworkGrid
 from mesa.time import SimultaneousActivation
@@ -13,12 +14,38 @@ class TaskModel(Model):
     """System of TaskAgents.
 
     Attributes:
+        max_steps: Number of steps after which to stop model execution when
+            using run_model().
         num_agents: Number of agents.
         rng: Numpy RNG instance to use when sampling random numbers.
+        schedule: The scheduler.
+        grid: The network grid.
+        datacollector: The DataCollector.
     """
 
     def __init__(self, max_steps: int, num_agents: int,
                  fitness_params: Dict[str, float], agent_params: Dict[str, float]):
+        """Initialize the instance.
+
+        It initializes a numpy RNG to use within the ABM in the place of Mesa's
+        self.random. Numpy has the advantage that it implements the
+        hypergeometric distribution that the ABM needs.
+
+        Args:
+            max_steps: Number of steps after which to stop model execution when
+                using self.run_model().
+            num_agents: Number of agents.
+            fitness_params: The parameters of the normal distribution from which
+                to sample the agents' fitness values. The following names need
+                to be specified: "loc" (50), "sigma". The numbers in parentheses
+                specify the values used in the paper.
+            agent_params: The initial values for the agent's parameters. The
+                following names need to be specified: "performance" (0.01),
+                "init_task_count" (15). The numbers in parentheses specify the
+                values used in the paper. Note that agents have a third
+                parameter, the fitness, which is sampled for each agent
+                individually upon construction.
+        """
         super().__init__()
         self.max_steps = max_steps
         self.num_agents = num_agents
@@ -48,7 +75,7 @@ class TaskModel(Model):
 
 
     def step(self):
-        """Advances the ABM by one time step."""
+        """Advance the ABM by one time step."""
         self.schedule.step()
         if self.schedule.steps == self.max_steps:
             self.running = False
@@ -68,5 +95,5 @@ class TaskModel(Model):
 
     @property
     def matrix_entropy(self) -> float:
-        """Unnormalized information entropy of the adjacency-matrix entries."""
+        """Information entropy of the entries in the adjacency matrix, see Equation (8) in paper."""
         return entropy(adjacency_matrix(self.grid.G), axis=None)
