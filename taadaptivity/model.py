@@ -39,7 +39,7 @@ class TaskModel(Model):
         # Initialize data collection
         self.initialize_data_collector(
             model_reporters={"Network": "network",
-                             "Failed_Agents": "num_failed_agents",
+                             "Fraction_Failed": "fraction_failed_agents",
                              "Matrix_Entropy": "matrix_entropy"}
         )
 
@@ -58,9 +58,9 @@ class TaskModel(Model):
 
 
     @property
-    def num_failed_agents(self) -> int:
-        """Number of failed agents."""
-        return sum(agent.has_failed for agent in self.schedule.agents)
+    def fraction_failed_agents(self) -> int:
+        """Ratio of failed agents, see Equation (2) in the paper."""
+        return sum(agent.has_failed for agent in self.schedule.agents) / self.num_agents
 
 
     @property
