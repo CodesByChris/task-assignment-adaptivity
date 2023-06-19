@@ -17,8 +17,8 @@ class TaskModel(Model):
         rng: Numpy RNG instance to use when sampling random numbers.
     """
 
-    def __init__(self, max_steps: int, num_agents: int, sigma: float, loc: float = 50, performance: float = 0.01, init_task_count: int = 15):
-        """..."""
+    def __init__(self, max_steps: int, num_agents: int,
+                 fitness_params: Dict[str, float], agent_params: Dict[str, float]):
         super().__init__()
         self.max_steps = max_steps
         self.num_agents = num_agents
@@ -33,6 +33,9 @@ class TaskModel(Model):
             # Sample agent's fitness
             curr_agent_params = agent_params.copy()
             curr_agent_params["fitness"] = self.rng.normal(**fitness_params, size=None)
+
+            # Add agent
+            agent = TaskAgent(agent_id, self, curr_agent_params)
             self.schedule.add(agent)
             self.grid.place_agent(agent, agent_id)
 
