@@ -50,7 +50,8 @@ class TaskAgent(Agent):
         This method is the first step in a simultaneous update of all agents.
         """
         self._num_tasks_to_solve = ...
-        self._recipients = [self._choose_recipient() for _ in range(self._num_tasks_to_reassign)]
+        self._recipients = [self._choose_recipient()
+                            for _ in range(self._num_tasks_to_redistribute)]
         # self._recipients is a list because the same recipient can be chosen multiple times.
 
 
@@ -67,9 +68,15 @@ class TaskAgent(Agent):
             self.has_failed = True
 
 
+    def _solve_tasks(self):
+        """Solve the tasks for the current time step, see Equation (3) in paper."""
+        ...
+        self._num_tasks_to_solve = None
+
+
     @property
-    def _num_tasks_to_reassign(self) -> int:
-        """Number of tasks the agent wants to reassign, see Equation (4) in paper."""
+    def _num_tasks_to_redistribute(self) -> int:
+        """Number of tasks the agent wants to redistribute, see Equation (4) in paper."""
         ...
 
 
@@ -94,19 +101,12 @@ class TaskAgent(Agent):
         return grid.get_cell_list_contents([recipient_id])[0]
 
 
-    def _solve_tasks(self):
-        """Solve the tasks for the current time step, see Equation (3) in paper."""
-        ...
-        self._num_tasks_to_solve = None
-
-
     def _redistribute_tasks(self):
         """Redistribute the tasks for the current time step."""
         assert isinstance(self._recipients, list), "Recipients not staged yet."
         for recipient in self._recipients:
             recipient.add_task()
         self._recipients = None
-
 
 
 # TODO: Ensure that only self.model.rng is used for random numbers
