@@ -91,6 +91,7 @@ class TaskModel(Model):
     def step(self):
         """Advance the ABM by one time step."""
         self.schedule.step()
+        self.datacollector.collect(self)
         if self.schedule.steps == self.max_steps:
             self.running = False
 
@@ -110,4 +111,6 @@ class TaskModel(Model):
     @property
     def matrix_entropy(self) -> float:
         """Information entropy of the entries in the adjacency matrix, see Equation (8) in paper."""
+        if self.grid.G.number_of_edges() == 0:
+            return 0  # we consider an empty network as fully deterministic, i.e. no randomness
         return entropy(adjacency_matrix(self.grid.G), axis=None)
