@@ -42,9 +42,10 @@ class TaskAgent(Agent):
         self._num_tasks_to_redistribute = None  # used for simultaneous update
 
 
-    def add_task(self):
-        """Add one task to the agent's task count."""
+    def add_task(self, sender: TaskAgent):
+        """Add one task to the agent's task count and update the network."""
         self.task_count += 1
+        self.model.grid.G.add_edge(sender.pos, self.pos)
 
 
     def step(self):
@@ -136,5 +137,5 @@ class TaskAgent(Agent):
         """Redistribute the tasks for the current time step."""
         assert isinstance(self._recipients, list), "Recipients not staged yet."
         for recipient in self._recipients:
-            recipient.add_task()
+            recipient.add_task(self)
         self._recipients = None
