@@ -37,8 +37,9 @@ class TaskModel(Model):
             num_agents: Number of agents.
             fitness_params: The parameters of the normal distribution from which
                 to sample the agents' fitness values. The following names need
-                to be specified: "loc" (50), "sigma". The numbers in parentheses
-                specify the values used in the paper.
+                to be specified: "loc" (50), "scale". The numbers in parentheses
+                specify the values used in the paper. The paper calls the
+                parameters $\\mu$ (="loc") and $\\sigma$ (="scale").
             agent_params: The initial values for the agent's parameters. The
                 following names need to be specified: "performance" (0.01),
                 "init_task_count" (15). The numbers in parentheses specify the
@@ -70,7 +71,8 @@ class TaskModel(Model):
         self.initialize_data_collector(
             model_reporters={"Network": "network",
                              "Fraction_Failed": "fraction_failed_agents",
-                             "Matrix_Entropy": "matrix_entropy"}
+                             "Matrix_Entropy": "matrix_entropy"},
+            agent_reporters={"Task_Load": "task_load"}
         )
 
 
