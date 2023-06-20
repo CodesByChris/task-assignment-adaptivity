@@ -66,7 +66,6 @@ class TaskAgent(Agent):
         It also takes care to switch the agent to failed if its task load
         exceeds the threshold (i.e. self.fitness).
         """
-
         self._redistribute_tasks()
         self.task_count += self._unsolved_task_count
 
@@ -76,32 +75,30 @@ class TaskAgent(Agent):
 
     @property
     def task_load(self) -> float:
-        """Ratio of the agent's task solving capacity in use.
+        """Ratio of the agent's task solving capacity currently in use.
 
-        For failed agents, this ratio is defined as 1 because they have no task
-        solving capacity anymore.
+        If the agent has failed, this ratio is defined as 1 to represent its
+        inability to solve tasks.
         """
-
+        if self.has_failed or self.fitness <= 0:
+            return 1
         return self.task_count / self.fitness
 
 
     def _split_solve_redistribute_tasks(self):
-        '''
-        distribute tasks with probability pi.
-        remaining tasks are left to solve.
-        '''
+        """Distribute tasks with probability p_i. Remaining tasks are left to solve."""
         if self.has_failed:
             # Agent has failed in previous time-step --> Redistribute all tasks
-            # pi = 1
+            # p_i = 1
             nbad = 0
             ngood = floor(self.task_count)
         else:
-            # pi = (c + self.x/self.theta)/(1+c)
-            nbad = self.fitness-floor(self.task_count)
+            # p_i = (c + self.x/self.theta)/(1+c)
+            nbad = self.fitness - floor(self.task_count)
             ngood = floor(self.task_count)
 
-        # pi without replacement
-        self._num_tasks_to_redistribute = self.model.rng.hypergeometric(ngood = ngood, nbad = nbad, nsample=floor(self.task_count))
+        # p_i without replacement
+        self._num_tasks_to_redistribute = self.model.rng.hypergeometric(ngood = ngood, nbad = nbad, nsample = floor(self.task_count))
         self.task_count -= self._num_tasks_to_redistribute
         self._unsolved_task_count = self.task_count
         self.task_count = 0
@@ -109,7 +106,6 @@ class TaskAgent(Agent):
 
     def _solve_tasks(self):
         """Solve the tasks for the current time step, see Equation (3) in paper."""
-
         self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
 
 
@@ -141,6 +137,3 @@ class TaskAgent(Agent):
         for recipient in self._recipients:
             recipient.add_task()
         self._recipients = None
-
-
-# TODO: Ensure that only self.model.rng is used for random numbers
