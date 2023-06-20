@@ -98,7 +98,8 @@ class TaskAgent(Agent):
             ngood = floor(self.task_count)
 
         # p_i without replacement
-        self._num_tasks_to_redistribute = self.model.rng.hypergeometric(ngood = ngood, nbad = nbad, nsample = floor(self.task_count))
+        hgeom_params = {"ngood": ngood, "nbad": nbad, "nsample": floor(self.task_count)}
+        self._num_tasks_to_redistribute = self.model.rng.hypergeometric(**hgeom_params)
         self.task_count -= self._num_tasks_to_redistribute
         self._unsolved_task_count = self.task_count
         self.task_count = 0

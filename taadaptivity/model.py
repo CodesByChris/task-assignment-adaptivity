@@ -23,8 +23,7 @@ class TaskModel(Model):
         datacollector: The DataCollector.
     """
 
-    def __init__(self, max_steps: int, num_agents: int,
-                 fitness_params: Dict[str, float], agent_params: Dict[str, float]):
+    def __init__(self, params: Dict[str, float], max_steps: int, seed: int | None = None):
         """Initialize the instance.
 
         It initializes a numpy RNG to use within the ABM in the place of Mesa's
@@ -34,33 +33,46 @@ class TaskModel(Model):
         Args:
             max_steps: Number of steps after which to stop model execution when
                 using self.run_model().
-            num_agents: Number of agents.
-            fitness_params: The parameters of the normal distribution from which
-                to sample the agents' fitness values. The following names need
-                to be specified: "loc" (50), "scale". The numbers in parentheses
-                specify the values used in the paper. The paper calls the
-                parameters $\\mu$ (="loc") and $\\sigma$ (="scale").
-            agent_params: The initial values for the agent's parameters. The
-                following names need to be specified: "performance" (0.01),
-                "init_task_count" (15). The numbers in parentheses specify the
-                values used in the paper. Note that agents have a third
-                parameter, the fitness, which is sampled for each agent
-                individually upon construction.
+            params: Represents the parameters of the model. It is a dict with
+                the following entries:
+                1. "num_agents": Number of agents.
+                2. "loc": The location parameter of the normal distribution from
+                   which to sample the agents' fitness values. The paper calls
+                   this parameter $\\mu$ and sets it to 50.
+                3. "scale": The standard deviation parameter of the normal
+                   distribution from which to sample the agents' fitness values.
+                   The paper calls this parameter $\\sigma$.
+                4. "performance": The first agent parameter. It is the rate at
+                   which the agents solve tasks. All agents receive the same
+                   value. The paper calls this parameter $\\tau_i$ and sets it
+                   to 0.01.
+                5. "init_task_count": The second agent parameter. It is the
+                   number of tasks each agent has at the beginning of the
+                   simulation. The paper sets it to 15.
+                Note that agents have a third parameter, the fitness
+                $\\theta_i$, which is sampled for each agent individually upon
+                construction.
+            seed: Random seed for the random number generator. Note that Mesa
+                uses the same seed to its default RNG in self.random, but which
+                is not used here. See __new__ in Mesa's Model class.
         """
         super().__init__()
         self.max_steps = max_steps
-        self.num_agents = num_agents
+        self.num_agents = params["num_agents"]
 
         # Initialize numpy RNG
-        self.rng = default_rng(self._seed)
+        self.rng = default_rng(seed)
 
         # Initialize agents and mesa setup
         self.schedule = SimultaneousActivation(self)
-        self.grid = NetworkGrid(empty_graph(num_agents, DiGraph))
-        for agent_id in range(num_agents):
+        self.grid = NetworkGrid(empty_graph(self.num_agents, DiGraph))
+        for agent_id in range(self.num_agents):
             # Sample agent's fitness
-            curr_agent_params = agent_params.copy()
-            curr_agent_params["fitness"] = self.rng.normal(**fitness_params, size=None)
+            curr_agent_params = {
+                "performance": params["performance"],
+                "init_task_count": params["init_task_count"],
+                "fitness": self.rng.normal(loc=params["loc"], scale=params["scale"], size=None),
+            }
 
             # Add agent
             agent = TaskAgent(agent_id, self, curr_agent_params)

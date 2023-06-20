@@ -5,10 +5,8 @@ from taadaptivity.model import TaskModel
 
 @pytest.fixture
 def simple_model():
-    return TaskModel(max_steps=100,
-                     num_agents=20,
-                     fitness_params={"loc": 50, "scale": 3},
-                     agent_params={"performance": 0.01, "init_task_count": 15})
+    params = {"num_agents": 20, "loc": 50, "scale": 3, "performance": 0.01, "init_task_count": 15}
+    return TaskModel(params, max_steps=100)
 
 
 def test_simple_run(simple_model):
