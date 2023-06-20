@@ -128,6 +128,7 @@ class TaskAgent(Agent):
                 num_interactions = grid.G.number_of_edges(self.pos, j)
                 fitness_j = grid.get_cell_list_contents([j])[0].fitness
                 recipient_probs[j] = fitness_j * (num_interactions + 1)
+        recipient_probs /= sum(recipient_probs)
 
         # Get recipient
         recipient_id = self.model.rng.choice(num_agents, p=recipient_probs)
