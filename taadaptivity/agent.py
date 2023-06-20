@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Dict
 from mesa import Agent
-from numpy import zeros
+from numpy import exp, zeros, floor
 from .model import TaskModel
 
 class TaskAgent(Agent):
@@ -36,7 +36,8 @@ class TaskAgent(Agent):
         self.task_count = agent_params["init_task_count"]
         self.has_failed = self.task_count > self.fitness
         self._recipients = None          # used for simultaneous update
-        self._num_tasks_to_solve = None  # used for simultaneous update
+        self._unsolved_task_count = None  # used for simultaneous update
+        self._num_tasks_to_redistribute = None  # used for simultaneous update
 
 
     def add_task(self):
@@ -49,7 +50,8 @@ class TaskAgent(Agent):
 
         This method is the first step in a simultaneous update of all agents.
         """
-        self._num_tasks_to_solve = ...
+        self._split_solve_redistribute_tasks()
+        self._solve_tasks()
         self._recipients = [self._choose_recipient()
                             for _ in range(self._num_tasks_to_redistribute)]
         # self._recipients is a list because the same recipient can be chosen multiple times.
@@ -62,22 +64,39 @@ class TaskAgent(Agent):
         It also takes care to switch the agent to failed if its task load
         exceeds the threshold (i.e. self.fitness).
         """
+        
         self._redistribute_tasks()
-        self._solve_tasks()
+        self.task_count += self._unsolved_task_count
+        
         if self.task_count > self.fitness:
             self.has_failed = True
+
+    def _split_solve_redistribute_tasks(self):
+        '''
+        distribute tasks with probability pi.
+        remaining tasks are left to solve.
+        '''
+        if self.failed:
+            # Agent has failed in previous time-step --> Redistribute all tasks
+            # pi = 1
+            nbad = 0
+            ngood = floor(self.task_count)
+        else:
+            # pi = (c + self.x/self.theta)/(1+c)
+            nbad = self.fitness-floor(self.task_count)
+            ngood = floor(self.task_count)
+
+        # pi without replacement
+        self._num_tasks_to_redistribute = self.model.rng.hypergeometric(ngood = ngood, nbad = nbad, nsample=floor(self.task_count))
+        self.task_count -= self._num_tasks_to_redistribute
+        self._unsolved_task_count = self.task_count
+        self.task_count = 0
 
 
     def _solve_tasks(self):
         """Solve the tasks for the current time step, see Equation (3) in paper."""
-        ...
-        self._num_tasks_to_solve = None
-
-
-    @property
-    def _num_tasks_to_redistribute(self) -> int:
-        """Number of tasks the agent wants to redistribute, see Equation (4) in paper."""
-        ...
+        
+        self._unsolved_task_count = self._unsolved_task_count * exp(-self.tau)
 
 
     def _choose_recipient(self) -> TaskAgent:
