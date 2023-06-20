@@ -1,19 +1,21 @@
 """Agent class."""
 
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 from mesa import Agent
 from numpy import zeros
-from .model import TaskModel
+if TYPE_CHECKING:
+    from .model import TaskModel
+
 
 class TaskAgent(Agent):
     """Worker who solves and redistributes tasks.
 
     Attributes:
         task_count: Number of tasks the agent has to solve; $x_i(t)$ in paper.
-        fitness: The maximum number of tasks the agent can solve; $theta_i$ in
+        fitness: The maximum number of tasks the agent can solve; $\\theta_i$ in
             paper.
-        performance: The rate at which the agent solves tasks; $tau_i$ in paper.
+        performance: The rate at which the agent solves tasks; $\\tau_i$ in paper.
         has_failed: Boolean representing whether the agent has failed.
     """
 
@@ -66,6 +68,16 @@ class TaskAgent(Agent):
         self._solve_tasks()
         if self.task_count > self.fitness:
             self.has_failed = True
+
+    @property
+    def task_load(self) -> float:
+        """Ratio of the agent's task solving capacity in use.
+
+        For failed agents, this ratio is defined as 1 because they have no task
+        solving capacity anymore.
+        """
+
+        return self.task_count / self.fitness
 
 
     def _solve_tasks(self):
