@@ -111,6 +111,10 @@ class TaskModel(Model):
     @property
     def matrix_entropy(self) -> float:
         """Information entropy of the entries in the adjacency matrix, see Equation (8) in paper."""
-        if self.grid.G.number_of_edges() == 0:
-            return 0  # we consider an empty network as fully deterministic, i.e. no randomness
-        return entropy(adjacency_matrix(self.grid.G), axis=None)
+        if self.G.number_of_edges() == 0:
+            # We consider an empty network as fully deterministic, i.e. no randomness
+            return 0
+
+        adjacency = adjacency_matrix(self.G).toarray()  # entropy() does not handle sparsearrays
+        probs = adjacency / adjacency.sum()
+        return entropy(probs, axis=None)
