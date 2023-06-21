@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import Dict, TYPE_CHECKING
 from mesa import Agent
-from numpy import exp, floor, zeros
+from numpy import exp, floor, zeros  # pylint: disable=no-name-in-module
 if TYPE_CHECKING:
     from .model import TaskModel
 
