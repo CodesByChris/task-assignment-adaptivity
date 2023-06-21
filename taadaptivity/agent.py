@@ -44,8 +44,14 @@ class TaskAgent(Agent):
 
     def add_task(self, sender: TaskAgent):
         """Add one task to the agent's task count and update the network."""
+        assert not self.has_failed, "Attempted to assign a task to a failed agent."
         self.task_count += 1
-        self.model.G.add_edge(sender.pos, self.pos)
+
+        # Update network
+        network = self.model.G
+        if not network.has_edge(sender.pos, self.pos):
+            network.add_edge(sender.pos, self.pos, weight = 0)
+        network.edges[sender.pos, self.pos]["weight"] += 1
 
 
     def step(self):
