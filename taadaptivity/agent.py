@@ -55,6 +55,12 @@ class TaskAgent(Agent):
             network.edges[sender.pos, self.pos]["weight"] += 1
 
 
+    def determine_failure(self):
+        """Marks the agent as failed if its task_count exceeds its fitness."""
+        if not self.has_failed and self.task_count > self.fitness:
+            self.has_failed = True
+
+
     def step(self):
         """Stage changes: (i) how many tasks to solve, and (ii) to whom to redistribute tasks.
 
@@ -71,14 +77,9 @@ class TaskAgent(Agent):
         """Apply changes staged by step().
 
         This method is the second step in a simultaneous update of all agents.
-        It also takes care to switch the agent to failed if its task load
-        exceeds the threshold (i.e. self.fitness).
         """
         self._redistribute_tasks()
         self.task_count += self._unsolved_task_count
-
-        if self.task_count > self.fitness:
-            self.has_failed = True
 
 
     @property

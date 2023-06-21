@@ -104,6 +104,10 @@ class TaskModel(Model):
                 if not agent.has_failed:
                     agent.add_task(sender = None)
 
+        # Update agent failures
+        for agent in self.schedule.agents:
+            agent.determine_failure()
+
         # Collect data and check completion
         self.datacollector.collect(self)
         if self.schedule.steps == self.max_steps:
