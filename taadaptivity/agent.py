@@ -42,16 +42,17 @@ class TaskAgent(Agent):
         self._num_tasks_to_redistribute = None  # used for simultaneous update
 
 
-    def add_task(self, sender: TaskAgent):
+    def add_task(self, sender: TaskAgent | None):
         """Add one task to the agent's task count and update the network."""
         assert not self.has_failed, "Attempted to assign a task to a failed agent."
         self.task_count += 1
 
         # Update network
-        network = self.model.G
-        if not network.has_edge(sender.pos, self.pos):
-            network.add_edge(sender.pos, self.pos, weight = 0)
-        network.edges[sender.pos, self.pos]["weight"] += 1
+        if sender:
+            network = self.model.G
+            if not network.has_edge(sender.pos, self.pos):
+                network.add_edge(sender.pos, self.pos, weight = 0)
+            network.edges[sender.pos, self.pos]["weight"] += 1
 
 
     def step(self):

@@ -15,8 +15,8 @@ class TaskModel(Model):
 
     Attributes:
         max_steps: Number of steps after which to stop model execution when
-            using run_model().
-        num_agents: Number of agents.
+        t_new: Number of time steps after which one new task arrives at each
+            agent. The paper uses 10, see p.4.
         rng: Numpy RNG instance to use when sampling random numbers.
         schedule: The scheduler.
         grid: The network grid.
@@ -36,17 +36,19 @@ class TaskModel(Model):
             params: Represents the parameters of the model. It is a dict with
                 the following entries:
                 1. "num_agents": Number of agents.
-                2. "loc": The location parameter of the normal distribution from
+                2. "t_new": Time difference after which external tasks arrive.
+                   The paper calls this parameter $T_{new}$ and sets it to 10.
+                3. "loc": The location parameter of the normal distribution from
                    which to sample the agents' fitness values. The paper calls
                    this parameter $\\mu$ and sets it to 50.
-                3. "scale": The standard deviation parameter of the normal
+                4. "scale": The standard deviation parameter of the normal
                    distribution from which to sample the agents' fitness values.
                    The paper calls this parameter $\\sigma$.
-                4. "performance": The first agent parameter. It is the rate at
+                5. "performance": The first agent parameter. It is the rate at
                    which the agents solve tasks. All agents receive the same
                    value. The paper calls this parameter $\\tau_i$ and sets it
                    to 0.01.
-                5. "init_task_count": The second agent parameter. It is the
+                6. "init_task_count": The second agent parameter. It is the
                    number of tasks each agent has at the beginning of the
                    simulation. The paper sets it to 15.
                 Note that agents have a third parameter, the fitness
@@ -58,17 +60,17 @@ class TaskModel(Model):
         """
         super().__init__()
         self.max_steps = max_steps
-        self.num_agents = params["num_agents"]
+        self.t_new = params["t_new"]
 
         # Initialize numpy RNG
         self.rng = default_rng(seed)
 
         # Initialize agents and mesa setup
         #     Name ".G" required in server.py. pylint: disable-next=invalid-name
-        self.G = empty_graph(self.num_agents, DiGraph)
+        self.G = empty_graph(params["num_agents"], DiGraph)
         self.grid = NetworkGrid(self.G)
         self.schedule = SimultaneousActivation(self)
-        for agent_id in range(self.num_agents):
+        for agent_id in range(params["num_agents"]):
             # Sample agent's fitness
             curr_agent_params = {
                 "performance": params["performance"],
@@ -92,7 +94,17 @@ class TaskModel(Model):
 
     def step(self):
         """Advance the ABM by one time step."""
+        # Advance agents
+        curr_step = self.schedule.steps
         self.schedule.step()
+
+        # Add new tasks
+        if curr_step > 0 and curr_step % self.t_new == 0:
+            for agent in self.schedule.agents:
+                if not agent.has_failed:
+                    agent.add_task(sender = None)
+
+        # Collect data and check completion
         self.datacollector.collect(self)
         if self.schedule.steps == self.max_steps:
             self.running = False
