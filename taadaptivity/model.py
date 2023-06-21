@@ -64,8 +64,10 @@ class TaskModel(Model):
         self.rng = default_rng(seed)
 
         # Initialize agents and mesa setup
+        #     Name ".G" required in server.py. pylint: disable-next=invalid-name
+        self.G = empty_graph(self.num_agents, DiGraph)
+        self.grid = NetworkGrid(self.G)
         self.schedule = SimultaneousActivation(self)
-        self.grid = NetworkGrid(empty_graph(self.num_agents, DiGraph))
         for agent_id in range(self.num_agents):
             # Sample agent's fitness
             curr_agent_params = {

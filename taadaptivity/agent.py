@@ -45,7 +45,7 @@ class TaskAgent(Agent):
     def add_task(self, sender: TaskAgent):
         """Add one task to the agent's task count and update the network."""
         self.task_count += 1
-        self.model.grid.G.add_edge(sender.pos, self.pos)
+        self.model.G.add_edge(sender.pos, self.pos)
 
 
     def step(self):
