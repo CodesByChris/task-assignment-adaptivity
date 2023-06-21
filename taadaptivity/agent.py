@@ -122,9 +122,10 @@ class TaskAgent(Agent):
         grid = self.model.grid
         recipient_probs = zeros(num_agents)
         for j in range(num_agents):
-            if j != self.pos:
+            agent_j = grid.get_cell_list_contents([j])[0]
+            if agent_j is not self and not agent_j.has_failed:
                 num_interactions = grid.G.number_of_edges(self.pos, j)
-                fitness_j = grid.get_cell_list_contents([j])[0].fitness
+                fitness_j = agent_j.fitness
                 recipient_probs[j] = fitness_j * (num_interactions + 1)
         recipient_probs /= sum(recipient_probs)
 
