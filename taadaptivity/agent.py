@@ -139,7 +139,7 @@ class TaskAgent(Agent):
             The sampled recipent.
         """
         # Compute interaction probabilities: (1) recipient fitness, (2) previous interactions
-        num_agents = self.model.num_agents
+        num_agents = len(self.model.schedule.agents)
         probs = zeros(num_agents)
         for agent_j in self.model.schedule.agents:
             if agent_j is not self and not agent_j.has_failed:
