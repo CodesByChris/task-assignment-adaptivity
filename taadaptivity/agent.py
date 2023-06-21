@@ -97,18 +97,17 @@ class TaskAgent(Agent):
         if self.has_failed:
             # Agent has failed in previous time-step --> Redistribute all tasks
             # p_i = 1
+            ngood = floor(self.task_count)
             nbad = 0
-            ngood = floor(self.task_count)
         else:
-            # p_i = (c + self.x/self.theta)/(1+c)
-            nbad = self.fitness - floor(self.task_count)
+            # p_i = (c + self.task_count/self.fitness)/(1+c)
             ngood = floor(self.task_count)
+            nbad = self.fitness - ngood
 
         # p_i without replacement
-        hgeom_params = {"ngood": ngood, "nbad": nbad, "nsample": floor(self.task_count)}
+        hgeom_params = {"ngood": ngood, "nbad": nbad, "nsample": ngood}
         self._num_tasks_to_redistribute = self.model.rng.hypergeometric(**hgeom_params)
-        self.task_count -= self._num_tasks_to_redistribute
-        self._unsolved_task_count = self.task_count
+        self._unsolved_task_count = self.task_count - self._num_tasks_to_redistribute
         self.task_count = 0
 
 
