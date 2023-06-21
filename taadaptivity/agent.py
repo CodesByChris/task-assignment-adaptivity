@@ -55,6 +55,20 @@ class TaskAgent(Agent):
             network.edges[sender.pos, self.pos]["weight"] += 1
 
 
+    def count_assignments(self, recipient: TaskAgent) -> int:
+        """Counts how often self has assigned tasks to recipient in the past.
+
+        Args:
+            recipient: The past recipient.
+
+        Returns:
+            The number of past task assignments from self to recipient.
+        """
+        if not self.model.G.has_edge(self.pos, recipient.pos):
+            return 0
+        return self.model.G.edges[self.pos, recipient.pos]["weight"]
+
+
     def determine_failure(self):
         """Marks the agent as failed if its task_count exceeds its fitness."""
         if not self.has_failed and self.task_count > self.fitness:
@@ -114,7 +128,7 @@ class TaskAgent(Agent):
 
 
     def _solve_tasks(self):
-        """Solve the tasks for the current time step, see Equation (3) in paper."""
+        """Solve the tasks for the current time step, see solution to Equation (3) in paper."""
         self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
 
 
@@ -126,19 +140,15 @@ class TaskAgent(Agent):
         """
         # Compute interaction probabilities: (1) recipient fitness, (2) previous interactions
         num_agents = self.model.num_agents
-        grid = self.model.grid
-        recipient_probs = zeros(num_agents)
-        for j in range(num_agents):
-            agent_j = grid.get_cell_list_contents([j])[0]
+        probs = zeros(num_agents)
+        for agent_j in self.model.schedule.agents:
             if agent_j is not self and not agent_j.has_failed:
-                num_interactions = grid.G.number_of_edges(self.pos, j)
-                fitness_j = agent_j.fitness
-                recipient_probs[j] = fitness_j * (num_interactions + 1)
-        recipient_probs /= sum(recipient_probs)
+                probs[agent_j.pos] = agent_j.fitness * (self.count_assignments(agent_j) + 1)
+        probs /= sum(probs)
 
         # Get recipient
-        recipient_id = self.model.rng.choice(num_agents, p=recipient_probs)
-        return grid.get_cell_list_contents([recipient_id])[0]
+        recipient_pos = self.model.rng.choice(num_agents, p = probs)
+        return self.model.grid.get_cell_list_contents([recipient_pos])[0]
 
 
     def _redistribute_tasks(self):

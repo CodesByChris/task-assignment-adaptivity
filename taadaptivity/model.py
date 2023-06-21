@@ -15,6 +15,7 @@ class TaskModel(Model):
 
     Attributes:
         max_steps: Number of steps after which to stop model execution when
+            using run_model(). The paper uses 500 and 1000.
         t_new: Number of time steps after which one new task arrives at each
             agent. The paper uses 10, see p.4.
         rng: Numpy RNG instance to use when sampling random numbers.
@@ -117,13 +118,14 @@ class TaskModel(Model):
     @property
     def network(self) -> DiGraph:
         """A copy of the grid."""
-        return self.grid.G.copy()
+        return self.G.copy()
 
 
     @property
     def fraction_failed_agents(self) -> int:
         """Ratio of failed agents, see Equation (2) in the paper."""
-        return sum(agent.has_failed for agent in self.schedule.agents) / self.num_agents
+        agents = self.schedule.agents
+        return sum(agent.has_failed for agent in agents) / len(agents)
 
 
     @property
