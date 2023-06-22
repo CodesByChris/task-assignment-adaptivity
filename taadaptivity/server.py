@@ -66,7 +66,7 @@ def rescale(values: List[float] | float, lower_in: float | None, upper_in: float
     return scaled_values[0] if is_single_value else scaled_values
 
 
-def network_portrayal(G: DiGraph, min_size = 2, max_size = 30):  # pylint: disable=invalid-name
+def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disable=invalid-name
     """Returns a plotting layout specifying how to plot the nodes and edges in G.
 
     Args:
@@ -86,14 +86,14 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 30):  # pylint: disab
     portrayal = {}
 
     # Node renderer
-    max_degree = max(d for _, d in G.out_degree)
     portrayal["nodes"] = []
     for agent_id in G.nodes:
+        agent = G.nodes[agent_id]["agent"][0]
         portrayal["nodes"].append({
             "id": agent_id,
-            "color": to_hex(Reds(G.nodes[agent_id]["agent"][0].task_load)),
             "label": str(agent_id),
-            "size": rescale(G.out_degree(agent_id), 0, max_degree, min_size, max_size),
+            "size": min_size if agent.has_failed else rescale(agent.task_load, 0, 1, min_size, max_size),  # TODO: size according to fitness
+            "color": "black" if agent.has_failed else to_hex(Reds(agent.task_load)),
         })
 
     # Edge renderer
@@ -128,7 +128,7 @@ pie_plot = PieChartModule([{"Label": "Fraction_Active", "Color": "green"},
 # Input Widgets: Sliders and NumberInputs
 model_params = {
     "seed": NumberInput("Random seed", value = 1234, description = "Random seed"),
-    "num_agents": Slider("Number of agents", value = 10, min_value = 0, max_value = 50,
+    "num_agents": Slider("Number of agents", value = 50, min_value = 0, max_value = 100,
                          description = "Number of agents."),
     "t_new": Slider("Task arrival lag", value = 10, min_value = 0, max_value = 50,
                     description = "Number of steps after which each agent receives one task."),
@@ -139,7 +139,7 @@ model_params = {
     "sigma": Slider("sigma", value = 8.5, min_value = 0, step = 0.1, max_value = 50,
                     description = "Standard deviation of the agents' fitness."),
     "loc": 50,
-    "max_steps": 300,
+    "max_steps": 1000,
 }
 
 
