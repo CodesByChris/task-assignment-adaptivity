@@ -5,7 +5,7 @@ from itertools import starmap
 from networkx.algorithms.isomorphism import is_isomorphic
 from taadaptivity.model import TaskModel
 
-SIMPLE_PARAMS = {"num_agents": 20, "loc": 50, "scale": 3, "performance": 0.01, "init_task_count": 15}
+SIMPLE_PARAMS = {"num_agents": 20, "t_new": 10, "loc": 50, "sigma": 3, "performance": 0.01, "init_task_count": 15}
 
 @pytest.fixture
 def simple_model():

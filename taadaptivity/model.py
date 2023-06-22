@@ -42,7 +42,7 @@ class TaskModel(Model):
                 3. "loc": The location parameter of the normal distribution from
                    which to sample the agents' fitness values. The paper calls
                    this parameter $\\mu$ and sets it to 50.
-                4. "scale": The standard deviation parameter of the normal
+                4. "sigma": The standard deviation parameter of the normal
                    distribution from which to sample the agents' fitness values.
                    The paper calls this parameter $\\sigma$.
                 5. "performance": The first agent parameter. It is the rate at
@@ -76,7 +76,7 @@ class TaskModel(Model):
             curr_agent_params = {
                 "performance": params["performance"],
                 "init_task_count": params["init_task_count"],
-                "fitness": self.rng.normal(loc=params["loc"], scale=params["scale"], size=None),
+                "fitness": self.rng.normal(loc=params["loc"], scale=params["sigma"], size=None),
             }
 
             # Add agent
