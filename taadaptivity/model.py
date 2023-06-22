@@ -4,7 +4,7 @@ from typing import Dict
 from mesa import Model
 from mesa.space import NetworkGrid
 from mesa.time import SimultaneousActivation
-from networkx import adjacency_matrix, DiGraph, empty_graph
+from networkx import adjacency_matrix, complete_graph, DiGraph, set_edge_attributes
 from numpy.random import default_rng
 from scipy.stats import entropy
 from .agent import TaskAgent
@@ -68,7 +68,8 @@ class TaskModel(Model):
 
         # Initialize agents and mesa setup
         #     Name ".G" required in server.py. pylint: disable-next=invalid-name
-        self.G = empty_graph(params["num_agents"], DiGraph)
+        self.G = complete_graph(params["num_agents"], DiGraph)
+        set_edge_attributes(self.G, 0, "weight")
         self.grid = NetworkGrid(self.G)
         self.schedule = SimultaneousActivation(self)
         for agent_id in range(params["num_agents"]):
@@ -131,10 +132,9 @@ class TaskModel(Model):
     @property
     def matrix_entropy(self) -> float:
         """Information entropy of the entries in the adjacency matrix, see Equation (8) in paper."""
-        if self.G.number_of_edges() == 0:
+        adjacency = adjacency_matrix(self.G).toarray()  # entropy() does not handle sparsearrays
+        if not adjacency.any():
             # We consider an empty network as fully deterministic, i.e. no randomness
             return 0
-
-        adjacency = adjacency_matrix(self.G).toarray()  # entropy() does not handle sparsearrays
         probs = adjacency / adjacency.sum()
-        return entropy(probs, axis=None)
+        return entropy(probs, axis = None)

@@ -46,13 +46,8 @@ class TaskAgent(Agent):
         """Add one task to the agent's task count and update the network."""
         assert not self.has_failed, "Attempted to assign a task to a failed agent."
         self.task_count += 1
-
-        # Update network
         if sender:
-            network = self.model.G
-            if not network.has_edge(sender.pos, self.pos):
-                network.add_edge(sender.pos, self.pos, weight = 0)
-            network.edges[sender.pos, self.pos]["weight"] += 1
+            self.model.G.edges[sender.pos, self.pos]["weight"] += 1
 
 
     def count_assignments(self, recipient: TaskAgent) -> int:
@@ -64,8 +59,6 @@ class TaskAgent(Agent):
         Returns:
             The number of past task assignments from self to recipient.
         """
-        if not self.model.G.has_edge(self.pos, recipient.pos):
-            return 0
         return self.model.G.edges[self.pos, recipient.pos]["weight"]
 
 
