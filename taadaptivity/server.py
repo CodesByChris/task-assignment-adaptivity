@@ -86,13 +86,15 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
     portrayal = {}
 
     # Node renderer
+    agents = [ags[0] for _, ags in G.nodes(data = "agent")]
+    min_fitness = min(a.fitness for a in agents)
+    max_fitness = max(a.fitness for a in agents)
     portrayal["nodes"] = []
     for agent_id in G.nodes:
         agent = G.nodes[agent_id]["agent"][0]
         portrayal["nodes"].append({
             "id": agent_id,
-            "label": str(agent_id),
-            "size": min_size if agent.has_failed else rescale(agent.task_load, 0, 1, min_size, max_size),  # TODO: size according to fitness
+            "size": rescale(agent.fitness, min_fitness, max_fitness, min_size, max_size),
             "color": "black" if agent.has_failed else to_hex(Reds(agent.task_load)),
         })
 
