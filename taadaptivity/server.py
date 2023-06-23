@@ -4,7 +4,7 @@ from typing import List
 from networkx import adjacency_matrix, DiGraph
 from matplotlib.cm import Reds  # pylint: disable=no-name-in-module
 from matplotlib.colors import to_hex
-from mesa.visualization.modules import ChartModule, NetworkModule, PieChartModule
+from mesa.visualization.modules import ChartModule, NetworkModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import NumberInput, Slider
 from scipy.stats import entropy
@@ -120,40 +120,10 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
     return portrayal
 
 
-
-# Plots
-network_plot = NetworkModule(network_portrayal)
-line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
-                         {"Label": "Fraction_Failed", "Color": "red"}],
-                        data_collector_name = "datacollector")
-pie_plot = PieChartModule([{"Label": "Fraction_Active", "Color": "green"},
-                           {"Label": "Fraction_Failed", "Color": "red"}],
-                          data_collector_name = "datacollector")
-
-
-# Input Widgets: Sliders and NumberInputs
-model_params = {
-    "seed": NumberInput("Random seed", value = 1234, description = "Random seed"),
-    "num_agents": Slider("Number of agents", value = 50, min_value = 0, max_value = 100,
-                         description = "Number of agents."),
-    "t_new": Slider("Task arrival lag", value = 10, min_value = 0, max_value = 50,
-                    description = "Number of steps after which each agent receives one task."),
-    "init_task_count": Slider("Initial task count", value = 15, min_value = 0, max_value = 50,
-                              description = "Task count of each agent at step 0."),
-    "performance": Slider("Performance", value = 0.01, min_value = 0, max_value = 1, step = 0.01,
-                          description="Agents' performance."),
-    "sigma": Slider("sigma", value = 8.5, min_value = 0, step = 0.1, max_value = 50,
-                    description = "Standard deviation of the agents' fitness."),
-    "loc": 50,
-    "max_steps": 1000,
-}
-
-
-# Server
 class TaskModelViz(TaskModel):
-    """Helper for server.py."""
+    """Helper for ModularServer."""
     def __init__(self, *args, **kwargs):
-        """Connect slider parameters to TaskModel.__ini__ and collect data for PieChartModule."""
+        """Connect slider parameters to TaskModel.__init__ and collect data for PieChartModule."""
 
         # Adjust __init__ arguments
         kwargs["params"] = {
@@ -169,8 +139,7 @@ class TaskModelViz(TaskModel):
         # Collect additional variables
         self.initialize_data_collector(
             model_reporters={"Fraction_Failed": "fraction_failed_agents",
-                             "Fraction_Active": lambda model: 1 - model.fraction_failed_agents,
-                             "Matrix_Entropy": "relative_entropy"},
+                            "Matrix_Entropy": "relative_entropy"},
             agent_reporters={"Task_Load": "task_load"}
         )
 
@@ -183,10 +152,45 @@ class TaskModelViz(TaskModel):
         return self.matrix_entropy / entropy(equal_probs)
 
 
-server = ModularServer(
-    TaskModelViz,
-    visualization_elements = [network_plot, line_plot, pie_plot],
-    name = "Task Assignment Model",
-    model_params = model_params,
-    port = None
-)
+def build_server(params, max_steps, seed, description = None):
+    """Builds a ModularServer with the provided parameters as initial values of the sliders."""
+    # Plot widgets
+    network_plot = NetworkModule(network_portrayal, canvas_height = 550, canvas_width = 864)
+    line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
+                            {"Label": "Fraction_Failed", "Color": "red"}],
+                            data_collector_name = "datacollector")
+
+    visualization_elements = [network_plot, line_plot]
+    if description:
+        visualization_elements.append(lambda _: description)
+
+
+    # Input widgets: Sliders and NumberInputs
+    model_params = {
+        "seed": NumberInput("Random seed", value = seed, description = "Random seed"),
+        "num_agents": Slider("Number of agents", value = params["num_agents"],
+                             min_value = 0, max_value = 100, description = "Number of agents."),
+        "t_new": Slider("Task arrival lag", value = params["t_new"], min_value = 0, max_value = 50,
+                        description = "Number of steps after which each agent receives one task."),
+        "init_task_count": Slider("Initial task count", value = params["init_task_count"],
+                                  min_value = 0, max_value = 50,
+                                  description = "Task count of each agent at step 0."),
+        "performance": Slider("Performance", value = params["performance"],
+                              min_value = 0, max_value = 1, step = 0.01,
+                              description = "Agents' performance."),
+        "sigma": Slider("sigma", value = params["sigma"], min_value = 0, max_value = 50,
+                        step = 0.1, description = "Standard deviation of the agents' fitness."),
+        "loc": params["loc"],
+        "max_steps": max_steps,
+    }
+
+
+    # Server
+    server = ModularServer(
+        TaskModelViz,
+        visualization_elements = visualization_elements,
+        name = "Task Assignment Model",
+        model_params = model_params,
+        port = None
+    )
+    return server
