@@ -136,6 +136,9 @@ class TaskAgent(Agent):
         Returns:
             The sampled recipents.
         """
+        if not num_recipients:
+            return []
+
         # Compute interaction probabilities: (1) recipient fitness, (2) previous interactions
         num_agents = len(self.model.schedule.agents)
         probs = zeros(num_agents)
