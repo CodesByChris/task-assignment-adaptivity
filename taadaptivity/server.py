@@ -7,6 +7,7 @@ from matplotlib.colors import to_hex
 from mesa.visualization.modules import ChartModule, NetworkModule, PieChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import NumberInput, Slider
+from scipy.stats import entropy
 from .model import TaskModel
 
 
@@ -147,8 +148,9 @@ model_params = {
 
 # Server
 class TaskModelViz(TaskModel):
-    """Helper for server.py to connect __init__ arguments to slider parameters."""
+    """Helper for server.py."""
     def __init__(self, *args, **kwargs):
+        """Connect slider parameters to TaskModel.__ini__ and collect data for PieChartModule."""
 
         # Adjust __init__ arguments
         kwargs["params"] = {
@@ -166,9 +168,18 @@ class TaskModelViz(TaskModel):
             model_reporters={"Network": "network",
                              "Fraction_Failed": "fraction_failed_agents",
                              "Fraction_Active": lambda model: 1 - model.fraction_failed_agents,
-                             "Matrix_Entropy": "matrix_entropy"},
+                             "Matrix_Entropy": "relative_entropy"},
             agent_reporters={"Task_Load": "task_load"}
         )
+
+    @property
+    def relative_entropy(self):
+        """Normalize matrix entropy into [0, 1]."""
+        # Maximum entropy: all edges equally likely except for selfloops, which have probability 0.
+        num_free_entries = self.G.number_of_nodes() * (self.G.number_of_nodes() - 1)
+        equal_probs = [1 / num_free_entries] * num_free_entries
+        return self.matrix_entropy / entropy(equal_probs)
+
 
 server = ModularServer(
     TaskModelViz,
