@@ -78,10 +78,10 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
         max_size: Maximum node size in plot.
 
     Returns:
-        The layout as a dict with two components:
+        The layout as a dict with two entries:
         1. "nodes": A list whose entries correspond to the nodes in G and whose
            values are dicts specifying the plotting style of the respective
-           nodes.
+           nodes, i.e. "id", "size", and "color".
         2. "edges": Same as "nodes" but for the edges.
     """
     portrayal = {}
@@ -90,6 +90,7 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
     agents = [ags[0] for _, ags in G.nodes(data = "agent")]
     min_fitness = min(a.fitness for a in agents)
     max_fitness = max(a.fitness for a in agents)
+
     portrayal["nodes"] = []
     for agent_id in G.nodes:
         agent = G.nodes[agent_id]["agent"][0]
@@ -124,7 +125,7 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
 network_plot = NetworkModule(network_portrayal)
 line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
                          {"Label": "Fraction_Failed", "Color": "red"}],
-                         data_collector_name = "datacollector")
+                        data_collector_name = "datacollector")
 pie_plot = PieChartModule([{"Label": "Fraction_Active", "Color": "green"},
                            {"Label": "Fraction_Failed", "Color": "red"}],
                           data_collector_name = "datacollector")
