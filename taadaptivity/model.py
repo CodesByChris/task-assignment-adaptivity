@@ -77,7 +77,9 @@ class TaskModel(Model):
         self.G = complete_graph(params["num_agents"], DiGraph)
         set_edge_attributes(self.G, 0, "weight")
         self.grid = NetworkGrid(self.G)
+
         self.schedule = SimultaneousActivation(self)
+        self.active_agents = []
         for agent_id in range(params["num_agents"]):
             # Sample agent's fitness
             curr_agent_params = {
@@ -90,6 +92,7 @@ class TaskModel(Model):
             agent = TaskAgent(agent_id, self, curr_agent_params)
             self.schedule.add(agent)
             self.grid.place_agent(agent, agent_id)
+            self.active_agents.append(agent)
         self._update_failures()
 
         # Initialize data collection
@@ -130,8 +133,7 @@ class TaskModel(Model):
     @property
     def fraction_failed_agents(self) -> int:
         """Ratio of failed agents, see Equation (2) in the paper."""
-        agents = self.schedule.agents
-        return sum(agent.has_failed for agent in agents) / len(agents)
+        return 1 - len(self.active_agents) / len(self.schedule.agents)
 
 
     @property
@@ -148,6 +150,7 @@ class TaskModel(Model):
         """Removes failed agents from self.active_agents."""
         for agent in self.active_agents:
             agent.determine_failure()
+        self.active_agents = [agent for agent in self.active_agents if not agent.has_failed]
 
 
 # Parameter sets

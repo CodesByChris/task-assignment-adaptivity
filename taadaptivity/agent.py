@@ -140,17 +140,16 @@ class TaskAgent(Agent):
             return []
 
         # Compute interaction probabilities: (1) recipient fitness, (2) previous interactions
-        num_agents = len(self.model.schedule.agents)
+        num_agents = len(self.model.active_agents)
         probs = zeros(num_agents)
-        for agent_j in self.model.schedule.agents:
-            if agent_j is not self and not agent_j.has_failed:
-                probs[agent_j.pos] = agent_j.fitness * (self.count_assignments(agent_j) + 1)
+        for id_j, agent_j in enumerate(self.model.active_agents):
+            if agent_j is not self:
+                probs[id_j] = agent_j.fitness * (self.count_assignments(agent_j) + 1)
         probs /= sum(probs)
 
-        # Get recipient
-        recipient_ids = self.model.rng.choice(num_agents, size = num_recipients,
-                                              replace = True, p = probs)
-        return self.model.grid.get_cell_list_contents(recipient_ids)
+        # Get recipients
+        ids = self.model.rng.choice(num_agents, size = num_recipients, replace = True, p = probs)
+        return [self.model.active_agents[rec_id] for rec_id in ids]
 
 
     def _redistribute_tasks(self):
