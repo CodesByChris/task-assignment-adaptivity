@@ -87,8 +87,7 @@ class TaskModel(Model):
 
         # Initialize data collection
         self.initialize_data_collector(
-            model_reporters={"Network": "network",
-                             "Fraction_Failed": "fraction_failed_agents",
+            model_reporters={"Fraction_Failed": "fraction_failed_agents",
                              "Matrix_Entropy": "matrix_entropy"},
             agent_reporters={"Task_Load": "task_load"}
         )

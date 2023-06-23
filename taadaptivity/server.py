@@ -2,7 +2,7 @@
 
 from typing import List
 from networkx import adjacency_matrix, DiGraph
-from matplotlib.cm import Greys, Reds  # pylint: disable=no-name-in-module
+from matplotlib.cm import Reds  # pylint: disable=no-name-in-module
 from matplotlib.colors import to_hex
 from mesa.visualization.modules import ChartModule, NetworkModule, PieChartModule
 from mesa.visualization.ModularVisualization import ModularServer
@@ -168,8 +168,7 @@ class TaskModelViz(TaskModel):
 
         # Collect additional variables
         self.initialize_data_collector(
-            model_reporters={"Network": "network",
-                             "Fraction_Failed": "fraction_failed_agents",
+            model_reporters={"Fraction_Failed": "fraction_failed_agents",
                              "Fraction_Active": lambda model: 1 - model.fraction_failed_agents,
                              "Matrix_Entropy": "relative_entropy"},
             agent_reporters={"Task_Load": "task_load"}

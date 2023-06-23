@@ -37,8 +37,7 @@ def test_repeatable_datacollection(num_reps = 10):
             new_model_df = abm.datacollector.get_model_vars_dataframe()
             new_agent_df = abm.datacollector.get_agent_vars_dataframe()
             if not (old_model_df is None or old_agent_df is None):
-                assert old_model_df.drop(columns="Network").equals(new_model_df.drop(columns="Network"))
-                assert all(starmap(is_isomorphic, zip(old_model_df.Network, new_model_df.Network)))
+                assert old_model_df.equals(new_model_df)
                 assert old_agent_df.equals(new_agent_df)
             old_model_df = new_model_df
             old_agent_df = new_agent_df
