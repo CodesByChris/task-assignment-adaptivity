@@ -102,16 +102,18 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
     # Edge renderer
     adj_matrix = adjacency_matrix(G)
     max_adj = adj_matrix.max()
+
     portrayal["edges"] = []
     for edge_id, (source, target) in enumerate(G.edges):
-        edge_count = int(adj_matrix[source, target])  # int() converts an np.int64 to Python int
+        num_edges = int(adj_matrix[source, target])  # int() converts an np.int64 to Python int
+        opacity = 0 if num_edges == 0 else rescale(num_edges, 0, max_adj, 0, 1)
         portrayal["edges"].append({
             "id": edge_id,
             "source": source,
             "target": target,
-            "color": to_hex(Greys(rescale(edge_count, 0, max_adj, 0, 1))),
+            "color": to_hex((0, 0, 0, opacity), keep_alpha = True),
+            "alpha": 0.5,
             "width": 2,
-            # "label": f"Task assignments: {edge_count}",
         })
 
     return portrayal
