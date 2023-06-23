@@ -85,6 +85,7 @@ class TaskModel(Model):
             agent = TaskAgent(agent_id, self, curr_agent_params)
             self.schedule.add(agent)
             self.grid.place_agent(agent, agent_id)
+        self._update_failures()
 
         # Initialize data collection
         self.initialize_data_collector(
@@ -107,8 +108,7 @@ class TaskModel(Model):
                     agent.add_task(sender = None)
 
         # Update agent failures
-        for agent in self.schedule.agents:
-            agent.determine_failure()
+        self._update_failures()
 
         # Collect data and check completion
         self.datacollector.collect(self)
@@ -137,3 +137,9 @@ class TaskModel(Model):
             # We consider an empty network as fully deterministic, i.e. no randomness
             return 0
         return entropy(entries / entries.sum())
+
+
+    def _update_failures(self):
+        """Removes failed agents from self.active_agents."""
+        for agent in self.active_agents:
+            agent.determine_failure()

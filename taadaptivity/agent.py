@@ -36,7 +36,8 @@ class TaskAgent(Agent):
         self.fitness = agent_params["fitness"]
         self.performance = agent_params["performance"]
         self.task_count = agent_params["init_task_count"]
-        self.has_failed = self.task_count > self.fitness
+        self.has_failed = False
+        self.determine_failure()
         self._recipients = None          # used for simultaneous update
         self._unsolved_task_count = None  # used for simultaneous update
         self._num_tasks_to_redistribute = None  # used for simultaneous update
