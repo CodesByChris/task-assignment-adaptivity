@@ -120,7 +120,7 @@ class TaskModel(Model):
 
         # Collect data and check completion
         self.datacollector.collect(self)
-        if self.schedule.steps == self.max_steps:
+        if self.schedule.steps == self.max_steps or self.fraction_failed_agents == 1:
             self.running = False
 
 
