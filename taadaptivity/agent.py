@@ -102,6 +102,14 @@ class TaskAgent(Agent):
 
     def _split_solve_redistribute_tasks(self):
         """Distribute tasks with probability p_i. Remaining tasks are left to solve."""
+        if len(self.model.active_agents) < 2:
+            # Special case: cannot redistribute because no other active agent exists
+            self._num_tasks_to_redistribute = 0
+            self._unsolved_task_count = 0 if self.has_failed else self.task_count
+            self.task_count = 0
+            return
+
+        # Determine hypergeometric params
         if self.has_failed:
             # Agent has failed in previous time-step --> Redistribute all tasks
             # p_i = 1
