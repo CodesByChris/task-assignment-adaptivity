@@ -1,4 +1,9 @@
-"""Model class."""
+"""Model class.
+
+Some parameter sets leading to special outcomes of the ABM are included at the bottom.
+They can be used by simply unpacking them into __init__, e.g.:
+abm = TaskModel(**PARAMS_FULL_SYSTEM_COLLAPSES)
+"""
 
 from typing import Dict
 from mesa import Model
@@ -143,3 +148,24 @@ class TaskModel(Model):
         """Removes failed agents from self.active_agents."""
         for agent in self.active_agents:
             agent.determine_failure()
+
+
+# Parameter sets
+PARAMS_REGULAR_I = {
+    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
+               "performance": 0.01, "init_task_count": 15},
+    "max_steps": 1000,
+    "seed": 401310793357603506,
+}
+PARAMS_REGULAR_II = {
+    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
+               "performance": 0.01, "init_task_count": 15},
+    "max_steps": 1000,
+    "seed": 1234,
+}
+PARAMS_FULL_SYSTEM_COLLAPSES = {
+    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 10.775510204081632,
+               "performance": 0.01, "init_task_count": 15},
+    "max_steps": 1000,
+    "seed": 5358743371814775615,
+}
