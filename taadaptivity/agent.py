@@ -1,7 +1,7 @@
 """Agent class."""
 
 from __future__ import annotations
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING
 from mesa import Agent
 from numpy import exp, floor, zeros  # pylint: disable=no-name-in-module
 if TYPE_CHECKING:
@@ -75,9 +75,7 @@ class TaskAgent(Agent):
         """
         self._split_solve_redistribute_tasks()
         self._solve_tasks()
-        self._recipients = [self._choose_recipient()
-                            for _ in range(self._num_tasks_to_redistribute)]
-        # self._recipients is a list because the same recipient can be chosen multiple times.
+        self._recipients = self._choose_recipients(self._num_tasks_to_redistribute)
 
 
     def advance(self):
@@ -125,11 +123,17 @@ class TaskAgent(Agent):
         self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
 
 
-    def _choose_recipient(self) -> TaskAgent:
-        """Sample a recipent for a task. see Equation (6) in paper.
+    def _choose_recipients(self, num_recipients) -> List[TaskAgent]:
+        """Sample recipents for tasks. see Equation (6) in paper.
+
+        Recipients can be sampled multiple times, in which case they appear in
+        the returned list more than once.
+
+        Args:
+            num_recipients: The number of recipients to sample.
 
         Returns:
-            The sampled recipent.
+            The sampled recipents.
         """
         # Compute interaction probabilities: (1) recipient fitness, (2) previous interactions
         num_agents = len(self.model.schedule.agents)
@@ -140,8 +144,9 @@ class TaskAgent(Agent):
         probs /= sum(probs)
 
         # Get recipient
-        recipient_pos = self.model.rng.choice(num_agents, p = probs)
-        return self.model.grid.get_cell_list_contents([recipient_pos])[0]
+        recipient_ids = self.model.rng.choice(num_agents, size = num_recipients,
+                                              replace = True, p = probs)
+        return self.model.grid.get_cell_list_contents(recipient_ids)
 
 
     def _redistribute_tasks(self):
