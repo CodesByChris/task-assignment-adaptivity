@@ -65,50 +65,49 @@ def test_repeatable_datacollection(taskmodel_args, num_reps = 5):
             old_agent_df = new_agent_df
 
 
+def choose_recipients_circle(self, num_recipients):
+    """Choose num_recipients times the next agent."""
+    num_agents = len(self.model.schedule.agents)
+    next_agent_id = (self.pos + 1) % num_agents
+    next_agent = self.model.schedule.agents[next_agent_id]
+    return [] if next_agent.has_failed else [next_agent] * num_recipients
+
+
 @pytest.mark.parametrize("taskmodel_args", MODEL_LIST)
-def test_network_generation_circular(taskmodel_args):
+@patch.object(TaskAgent, "_choose_recipients", side_effect = choose_recipients_circle, autospec = True)
+def test_network_generation_circular(mock_method, taskmodel_args):
     """Test network generation by generating a circular network."""
+    model = TaskModel(**taskmodel_args)
+    model.run_model()
 
-    # Mock test setup for _choose_recipients
-    def choose_recipients_circle(self, num_recipients):
-        """Choose num_recipients times the next agent."""
-        num_agents = len(self.model.schedule.agents)
-        next_agent_id = (self.pos + 1) % num_agents
-        next_agent = self.model.schedule.agents[next_agent_id]
-        return [] if next_agent.has_failed else [next_agent] * num_recipients
+    # Test: each agent called in every step
+    assert mock_method.call_count == taskmodel_args["max_steps"] * taskmodel_args["params"]["num_agents"]
+    # Note: "==" fails if we ever change the implementation of TaskModel.step()
+    #     such that it calls step() and advance() only for active agents instead
+    #     of all agents. This test will also fail if we change TaskAgent.step()
+    #     such that it does not call TaskAgent._choose_recipients() for failed
+    #     agents and directly returns an empty list to signal that no recipients
+    #     shall be chosen.
 
-    with patch.object(TaskAgent, "_choose_recipients", side_effect = choose_recipients_circle, autospec = True) as mock:
-        # Create and run model
-        model = TaskModel(**taskmodel_args)
-        model.run_model()
-        assert mock.call_count == taskmodel_args["max_steps"] * taskmodel_args["params"]["num_agents"]
-        # Note: the "==" will fail if we ever change the implementation of
-        #     TaskModel.step() such that it calls step() and advance() only for
-        #     active agents instead of all agents. This test will also fail if
-        #     we change TaskAgent.step() such that it does not call
-        #     TaskAgent._choose_recipients() for failed agents and directly
-        #     returns an empty list to signal that no recipients shall be chosen
-        #     for a failed agent.
+    # Test: circular network
+    adjacency = nx.to_numpy_array(model.network)
+    for row in adjacency:
+        assert (row > 0).sum() == 1 or (row == 0).all(), "Agents only have 1 neighbour (or 0 if they never reassigned any task)."
 
-        # Test circular network
-        adjacency = nx.to_numpy_array(model.network)
-        for row in adjacency:
-            assert (row > 0).sum() == 1 or (row == 0).all(), "Agents only have 1 neighbour (or 0 if they never reassigned any task)."
-
-        # Test network generation
-        #     Retrieve all calls from the mock and subtract the respective
-        #     number of edges from the adjacency matrix. If the ABM correctly
-        #     generated a circular network, the remaining adjacency matrix
-        #     should not have any edges left. If agents fail, the remaining
-        #     adjacency matrix can have negative entries.
-        adjacency = nx.to_numpy_array(model.network)
-        num_agents = len(model.schedule.agents)
-        for call in mock.call_args_list:
-            # Schema: call(agents, num_recipients)
-            agent, num_edges = call.args
-            next_agent_id = (agent.pos + 1) % num_agents
-            adjacency[agent.pos, next_agent_id] -= num_edges
-        assert (adjacency <= 0).all(), "No circle network was generated."
+    # Test: network generation
+    #     Retrieve all calls from the mock and subtract the respective
+    #     number of edges from the adjacency matrix. If the ABM correctly
+    #     generated a circular network, the remaining adjacency matrix
+    #     should not have any edges left. If agents fail, the remaining
+    #     adjacency matrix can have negative entries.
+    adjacency = nx.to_numpy_array(model.network)
+    num_agents = len(model.schedule.agents)
+    for call in mock_method.call_args_list:
+        # Schema: call(agents, num_recipients)
+        agent, num_edges = call.args
+        next_agent_id = (agent.pos + 1) % num_agents
+        adjacency[agent.pos, next_agent_id] -= num_edges
+    assert (adjacency <= 0).all(), "No circle network was generated."
 
 
 
