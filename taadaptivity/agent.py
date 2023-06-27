@@ -103,7 +103,7 @@ class TaskAgent(Agent):
     def _split_solve_redistribute_tasks(self):
         """Distribute tasks with probability p_i. Remaining tasks are left to solve."""
         if len(self.model.active_agents) < 2:
-            # Special case: cannot redistribute because no other active agent exists
+            # Special case: no redistribution because no other active agent exists
             self._num_tasks_to_redistribute = 0
             self._unsolved_task_count = 0 if self.has_failed else self.task_count
             self.task_count = 0
@@ -132,7 +132,7 @@ class TaskAgent(Agent):
         self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
 
 
-    def _choose_recipients(self, num_recipients) -> List[TaskAgent]:
+    def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:
         """Sample recipents for tasks. see Equation (6) in paper.
 
         Recipients can be sampled multiple times, in which case they appear in
