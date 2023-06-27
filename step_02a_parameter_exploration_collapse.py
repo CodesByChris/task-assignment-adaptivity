@@ -1,7 +1,7 @@
 """Starts the interactive visualization server."""
 
 from taadaptivity.server import build_server
-from taadaptivity.model import PARAMS_LARGE_SYSTEM_COLLAPSES
+from taadaptivity.model import EXAMPLE_PARAMS
 
 def main():
     """Starts the visualization server."""
@@ -15,7 +15,7 @@ def main():
         agents is not large enough to handle the workload, and they all fail,
         leaving the system with no active agents.
     """
-    build_server(**PARAMS_LARGE_SYSTEM_COLLAPSES, description = desc).launch()
+    build_server(**EXAMPLE_PARAMS["LARGE_SYSTEM_COLLAPSES"], description = desc).launch()
 
 if __name__ == "__main__":
     main()

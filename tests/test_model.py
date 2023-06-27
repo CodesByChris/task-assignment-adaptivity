@@ -3,37 +3,28 @@
 from unittest.mock import patch
 import pytest
 import networkx as nx
-from taadaptivity.model import TaskAgent, TaskModel
-import taadaptivity.model as tm
-
-MODEL_LIST = [tm.PARAMS_REGULAR_I,
-              tm.PARAMS_REGULAR_II,
-              tm.PARAMS_HIGH_SIGMA_SINGLE_AGENT_SURVIVING,
-              tm.PARAMS_HIGH_SIGMA_SYSTEM_RESILIENT,
-              tm.PARAMS_HIGH_SIGMA_SINGLE_FAILURE,
-              tm.PARAMS_HIGH_SIGMA_SYSTEM_COLLAPSES,
-              tm.PARAMS_LARGE_SYSTEM_COLLAPSES]
+from taadaptivity.model import EXAMPLE_PARAMS, TaskAgent, TaskModel
 
 
 @pytest.fixture
 def simple_model():
-    """Return a simple abm instance to experiment with."""
-    return tm.TaskModel({"num_agents": 20, "t_new": 10, "loc": 50, "sigma": 3,
-                         "performance": 0.01, "init_task_count": 15},
-                        max_steps = 100)
+    """Return a simple random abm instance to experiment with."""
+    return TaskModel({"num_agents": 20, "t_new": 10, "loc": 50, "sigma": 3,
+                      "performance": 0.01, "init_task_count": 15},
+                     max_steps = 100)
 
 
-@pytest.mark.parametrize("taskmodel_args", MODEL_LIST)
+@pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 def test_simple_run(taskmodel_args):
     """Simply run without throwing any errors."""
-    model = tm.TaskModel(**taskmodel_args)
+    model = TaskModel(**taskmodel_args)
     model.run_model()
 
 
-@pytest.mark.parametrize("taskmodel_args", MODEL_LIST)
+@pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 def test_step_counter(taskmodel_args):
     """Validate step counter."""
-    model = tm.TaskModel(**taskmodel_args)
+    model = TaskModel(**taskmodel_args)
     step = 0
     while step <= 100:
         assert step == model.schedule.steps
@@ -41,7 +32,7 @@ def test_step_counter(taskmodel_args):
         model.step()
 
 
-@pytest.mark.parametrize("taskmodel_args", MODEL_LIST)
+@pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 def test_repeatable_datacollection(taskmodel_args, num_reps = 5):
     """Check that datacollection is equal when re-running the model for the same seed."""
     for seed in range(0, 1000, 200):
@@ -52,7 +43,7 @@ def test_repeatable_datacollection(taskmodel_args, num_reps = 5):
             kwargs["seed"] = seed
 
             # Run model
-            abm = tm.TaskModel(**kwargs)
+            abm = TaskModel(**kwargs)
             abm.run_model()
 
             # Compare data collectors
@@ -73,7 +64,7 @@ def choose_recipients_circle(self, num_recipients):
     return [] if next_agent.has_failed else [next_agent] * num_recipients
 
 
-@pytest.mark.parametrize("taskmodel_args", MODEL_LIST)
+@pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 @patch.object(TaskAgent, "_choose_recipients", side_effect = choose_recipients_circle, autospec = True)
 def test_network_generation_circular(mock_method, taskmodel_args):
     """Test network generation by generating a circular network."""

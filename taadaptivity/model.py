@@ -2,7 +2,7 @@
 
 Some parameter sets leading to special outcomes of the ABM are included at the bottom.
 They can be used by simply unpacking them into __init__, e.g.:
-abm = TaskModel(**PARAMS_FULL_SYSTEM_COLLAPSES)
+abm = TaskModel(**EXAMPLE_PARAMS["FULL_SYSTEM_COLLAPSES"])
 """
 
 from typing import Dict
@@ -154,45 +154,47 @@ class TaskModel(Model):
 
 
 # Parameter sets
-PARAMS_REGULAR_I = {
-    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 401310793357603506,
-}
-PARAMS_REGULAR_II = {
-    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 1234,
-}
-PARAMS_LARGE_SYSTEM_COLLAPSES = {
-    "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 10.775510204081632,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 5358743371814775615,
-}
-PARAMS_HIGH_SIGMA_SINGLE_FAILURE = {
-    "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 1234,
-}
-PARAMS_HIGH_SIGMA_SYSTEM_COLLAPSES = {
-    "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 1227,
-}  # Figure 2 (c), blue
-PARAMS_HIGH_SIGMA_SYSTEM_RESILIENT = {
-    "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 1237,
-}  # Figure 2 (c), green
-PARAMS_HIGH_SIGMA_SINGLE_AGENT_SURVIVING = {
-    "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-               "performance": 0.01, "init_task_count": 15},
-    "max_steps": 1000,
-    "seed": 1232,
+EXAMPLE_PARAMS = {
+    "REGULAR_I": {
+        "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 401310793357603506,
+    },
+    "REGULAR_II": {
+        "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 1234,
+    },
+    "LARGE_SYSTEM_COLLAPSES": {
+        "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 10.775510204081632,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 5358743371814775615,
+    },
+    "HIGH_SIGMA_SINGLE_FAILURE": {
+        "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 1234,
+    },
+    "HIGH_SIGMA_SYSTEM_COLLAPSES": {  # Figure 2 (c), blue
+        "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 1227,
+    },
+    "HIGH_SIGMA_SYSTEM_RESILIENT": {  # Figure 2 (c), green
+        "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 1237,
+    },
+    "HIGH_SIGMA_SINGLE_AGENT_SURVIVING": {
+        "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                "performance": 0.01, "init_task_count": 15},
+        "max_steps": 1000,
+        "seed": 1232,
+    }
 }
