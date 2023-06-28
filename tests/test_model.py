@@ -151,8 +151,21 @@ def test_fraction_failed_agents():
         model.step()
         for _ in range(int(fitness - agent.task_count) + 1):
             agent.add_task(sender = None)
-        model._update_failures()
+        model._update_failures()  # pylint: disable=protected-access
 
+
+def test_no_task_addition_failed_agents():
+    """Tests whether assigning tasks to a failed agent raises an error."""
+    model = TaskModel(**EXAMPLE_PARAMS["SINGLE_AGENT_REMAINING"])
+    model.run_model()
+    remaining_agent = model.active_agents[0]
+    for failed_agent in filter(lambda a: a != remaining_agent, model.schedule.agents):
+        try:
+            failed_agent.add_task(sender = None)
+        except AssertionError:
+            pass
+        else:
+            pytest.fail("No exception raised when adding task to failed agent.")
 
 
 def test_example_params_system_collapses():
