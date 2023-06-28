@@ -33,6 +33,18 @@ def test_single_agent_system(steps = 100, t_new = 10, init_task_count = 15,
     assert model.schedule.steps == steps
 
 
+def test_system_collapse(num_agents = 40, t_new = 10):
+    """Test system collapse by overloading all agents with the new tasks."""
+    model = TaskModel(params = {"num_agents": num_agents, "t_new": t_new, "loc": 0.5,
+                                "sigma": 0, "performance": 0.01,
+                                "init_task_count": 0},
+                      max_steps = 2 * t_new, seed = None)
+    model.run_model()
+    assert model.schedule.steps == t_new, "Model did not stop early when no agents remain."
+    assert model.fraction_failed_agents == 1
+    assert len(model.active_agents) == 0
+
+
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 def test_step_counter(taskmodel_args):
     """Validate step counter."""
@@ -161,7 +173,6 @@ def test_example_params_single_agent_remaining():
     assert sum(not agent.has_failed for agent in model.schedule.agents) == 1
 
 
-# TODO Test: system collapse after a few steps
 # TODO Test: agent assignee selection
 # TODO Test: assigning task to failed agent raises error
 # TODO Test: matrix_entropy

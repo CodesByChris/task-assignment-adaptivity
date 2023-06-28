@@ -106,10 +106,10 @@ class TaskModel(Model):
     def step(self):
         """Advance the ABM by one time step."""
         # Advance agents
-        curr_step = self.schedule.steps
         self.schedule.step()
 
         # Add new tasks
+        curr_step = self.schedule.steps
         if curr_step > 0 and curr_step % self.t_new == 0:
             for agent in self.schedule.agents:
                 if not agent.has_failed:
@@ -157,19 +157,19 @@ class TaskModel(Model):
 EXAMPLE_PARAMS = {
     "REGULAR": {
         "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
-                "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_task_count": 15},
         "max_steps": 1000,
         "seed": 401310793357603506,
     },
     "SYSTEM_COLLAPSES": {
         "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_task_count": 15},
         "max_steps": 1000,
         "seed": 1227,
     },
     "SINGLE_AGENT_REMAINING": {
         "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_task_count": 15},
         "max_steps": 1000,
         "seed": 1232,
     }
