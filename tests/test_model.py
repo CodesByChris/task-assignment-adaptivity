@@ -6,19 +6,31 @@ import networkx as nx
 from taadaptivity.model import EXAMPLE_PARAMS, TaskAgent, TaskModel
 
 
-@pytest.fixture
-def simple_model():
-    """Return a simple random abm instance to experiment with."""
-    return TaskModel({"num_agents": 20, "t_new": 10, "loc": 50, "sigma": 3,
-                      "performance": 0.01, "init_task_count": 15},
-                     max_steps = 100)
-
-
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
 def test_simple_run(taskmodel_args):
     """Simply run without throwing any errors."""
     model = TaskModel(**taskmodel_args)
     model.run_model()
+
+
+def test_idle_system(steps = 100, num_agents = 30, fitness = 50, performance = 0.01):
+    """A system where no agent has any tasks should run indefinitely."""
+    model = TaskModel(params = {"num_agents": num_agents, "t_new": 2 * steps, "loc": fitness,
+                                "sigma": 0, "performance": performance, "init_task_count": 0},
+                      max_steps = steps, seed = None)
+    model.run_model()
+    assert model.schedule.steps == steps
+
+
+def test_single_agent_system(steps = 100, t_new = 10, init_task_count = 15,
+                             fitness = 50, performance = 0.01):
+    """A system with one agent should run as well."""
+    model = TaskModel(params = {"num_agents": 1, "t_new": t_new, "loc": fitness,
+                                "sigma": 0, "performance": performance,
+                                "init_task_count": init_task_count},
+                      max_steps = steps, seed = None)
+    model.run_model()
+    assert model.schedule.steps == steps
 
 
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
@@ -101,6 +113,36 @@ def test_network_generation_circular(mock_method, taskmodel_args):
     assert (adjacency <= 0).all(), "No circle network was generated."
 
 
+def test_fraction_failed_agents():
+    """Tests the model property fraction_failed_agents."""
+
+    # Test 1: collapsing system
+    model = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
+    model.run_model()
+    assert model.fraction_failed_agents == 1
+
+    # Test 2: one agent fails every step
+    #     After every step, we add a number of tasks to one agent that is large
+    #     enough such that it fails. We set a high "performance" so that agents
+    #     do not fail from the regular task assignment dynamics.
+    num_agents = 40
+    fitness = 100
+    model = TaskModel(params = {"num_agents": num_agents, "t_new": 2 * num_agents, "loc": fitness,
+                                "sigma": 0, "performance": 10, "init_task_count": 0},
+                      max_steps = None, seed = 1234)
+    for step, agent in enumerate(model.schedule.agents):
+        # Test fraction_failed_agents
+        assert model.fraction_failed_agents == pytest.approx(step / num_agents)
+        assert len(model.active_agents) == num_agents - step
+
+        # Overload one agent
+        model.step()
+        for _ in range(int(fitness - agent.task_count) + 1):
+            agent.add_task(sender = None)
+        model._update_failures()
+
+
+
 def test_example_params_system_collapses():
     """Tests if the system has no active agents after the simulation."""
     model = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
@@ -121,4 +163,5 @@ def test_example_params_single_agent_remaining():
 
 # TODO Test: system collapse after a few steps
 # TODO Test: agent assignee selection
-# TODO Test: fraction_failed_agents and matrix_entropy
+# TODO Test: assigning task to failed agent raises error
+# TODO Test: matrix_entropy
