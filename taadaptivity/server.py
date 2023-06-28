@@ -139,7 +139,7 @@ class TaskModelViz(TaskModel):
         # Collect additional variables
         self.initialize_data_collector(
             model_reporters={"Fraction_Failed": "fraction_failed_agents",
-                            "Matrix_Entropy": "relative_entropy"},
+                             "Matrix_Entropy": "relative_entropy"},
             agent_reporters={"Task_Load": "task_load"}
         )
 
@@ -156,11 +156,18 @@ def build_server(params, max_steps, seed, description = None):
     """Builds a ModularServer with the provided parameters as initial values of the sliders."""
     # Plot widgets
     network_plot = NetworkModule(network_portrayal, canvas_height = 550, canvas_width = 864)
+    legend = """
+        <div style="text-align: center;">
+            Agents: <span style="padding:10px;"/>
+            <span style="color:#CC0000;">&#x25CF;</span> active (color-intensity: task load, size: fitness)
+            <span style="padding:10px;"/> &#x25CF; failed
+        </div>
+    """
     line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
                             {"Label": "Fraction_Failed", "Color": "red"}],
                             data_collector_name = "datacollector")
 
-    visualization_elements = [network_plot, line_plot]
+    visualization_elements = [lambda _: legend, network_plot, line_plot]
     if description:
         visualization_elements.append(lambda _: description)
 
