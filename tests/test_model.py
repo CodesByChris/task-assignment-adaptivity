@@ -104,3 +104,5 @@ def test_network_generation_circular(mock_method, taskmodel_args):
 
 # Test: system collapse after a few steps
 # Test: agent assignee selection
+# Test: fraction_failed_agents and matrix_entropy
+# Test: model outcomes for the EXAMPLE_PARAMS in model.py

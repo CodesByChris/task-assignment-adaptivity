@@ -1,14 +1,11 @@
-"""Starts the interactive visualization server."""
+"""Run an interactive ABM visualization."""
 
 from taadaptivity.server import build_server
 from taadaptivity.model import EXAMPLE_PARAMS
 
 def main():
     """Starts the visualization server."""
-    desc = """
-        ...
-    """
-    build_server(**EXAMPLE_PARAMS["HIGH_SIGMA_SINGLE_FAILURE"], description = desc).launch()
+    build_server(**EXAMPLE_PARAMS["REGULAR"]).launch()
 
 if __name__ == "__main__":
     main()
