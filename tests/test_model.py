@@ -101,8 +101,24 @@ def test_network_generation_circular(mock_method, taskmodel_args):
     assert (adjacency <= 0).all(), "No circle network was generated."
 
 
+def test_example_params_system_collapses():
+    """Tests if the system has no active agents after the simulation."""
+    model = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
+    model.run_model()
+    assert model.fraction_failed_agents == 1
+    assert len(model.active_agents) == 0
+    assert sum(agent.has_failed for agent in model.schedule.agents) == len(model.schedule.agents)
 
-# Test: system collapse after a few steps
-# Test: agent assignee selection
-# Test: fraction_failed_agents and matrix_entropy
-# Test: model outcomes for the EXAMPLE_PARAMS in model.py
+
+def test_example_params_single_agent_remaining():
+    """Tests if the system has no active agents after the simulation."""
+    model = TaskModel(**EXAMPLE_PARAMS["SINGLE_AGENT_REMAINING"])
+    model.run_model()
+    assert model.fraction_failed_agents < 1
+    assert len(model.active_agents) == 1
+    assert sum(not agent.has_failed for agent in model.schedule.agents) == 1
+
+
+# TODO Test: system collapse after a few steps
+# TODO Test: agent assignee selection
+# TODO Test: fraction_failed_agents and matrix_entropy
