@@ -38,9 +38,9 @@ class TaskAgent(Agent):
         self.task_count = agent_params["init_task_count"]
         self.has_failed = False
         self.determine_failure()
-        self._recipients = None          # used for simultaneous update
-        self._unsolved_task_count = None  # used for simultaneous update
+        self._recipients = None  # used for simultaneous update
         self._num_tasks_to_redistribute = None  # used for simultaneous update
+        self._unsolved_task_count = None  # used for simultaneous update
 
 
     def add_task(self, sender: TaskAgent | None):
@@ -75,7 +75,6 @@ class TaskAgent(Agent):
         This method is the first step in a simultaneous update of all agents.
         """
         self._split_solve_redistribute_tasks()
-        self._solve_tasks()
         self._recipients = self._choose_recipients(self._num_tasks_to_redistribute)
 
 
@@ -85,7 +84,7 @@ class TaskAgent(Agent):
         This method is the second step in a simultaneous update of all agents.
         """
         self._redistribute_tasks()
-        self.task_count += self._unsolved_task_count
+        self._solve_tasks()
 
 
     @property
@@ -130,6 +129,8 @@ class TaskAgent(Agent):
     def _solve_tasks(self):
         """Solve the tasks for the current time step, see solution to Equation (3) in paper."""
         self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
+        self.task_count += self._unsolved_task_count
+        self._unsolved_task_count = None
 
 
     def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:
@@ -166,3 +167,4 @@ class TaskAgent(Agent):
         for recipient in self._recipients:
             recipient.add_task(self)
         self._recipients = None
+        self._num_tasks_to_redistribute = None
