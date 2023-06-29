@@ -3,6 +3,7 @@
 from unittest.mock import patch
 import pytest
 import networkx as nx
+from scipy.stats import entropy
 from taadaptivity.model import EXAMPLE_PARAMS, TaskAgent, TaskModel
 
 
@@ -139,8 +140,8 @@ def test_fraction_failed_agents():
     #     do not fail from the regular task assignment dynamics.
     num_agents = 40
     fitness = 100
-    model = TaskModel(params = {"num_agents": num_agents, "t_new": 2 * num_agents, "loc": fitness,
-                                "sigma": 0, "performance": 10, "init_task_count": 0},
+    model = TaskModel({"num_agents": num_agents, "t_new": 2 * num_agents, "loc": fitness,
+                       "sigma": 0, "performance": 10, "init_task_count": 0},
                       max_steps = None, seed = 1234)
     for step, agent in enumerate(model.schedule.agents):
         # Test fraction_failed_agents
@@ -152,6 +153,30 @@ def test_fraction_failed_agents():
         for _ in range(int(fitness - agent.task_count) + 1):
             agent.add_task(sender = None)
         model._update_failures()  # pylint: disable=protected-access
+
+
+def choose_all_recipients(self, _):
+    """Assign one task to every other agent."""
+    return [a for a in self.model.schedule.agents if a.unique_id != self.unique_id]
+
+
+@patch.object(TaskAgent, "_choose_recipients", side_effect = choose_all_recipients, autospec = True)
+def test_matrix_entropy_maximum_case(mock_method):
+    """Tests whether a network with equal edge counts everywhere yields the highest entropy."""
+
+    # Generate fully-connected network with edge-multiplicity 1000 for all pairs
+    num_steps = 1000
+    model = TaskModel({"num_agents": 50, "t_new": 10, "loc": 100, "sigma": 0,
+                        "performance": 10, "init_task_count": 0},
+                        max_steps = num_steps, seed = 1234)
+    model.run_model()
+    assert all(weight == num_steps for _, _, weight in model.network.edges.data("weight"))
+
+    # Test maximal entropy
+    num_agents = len(model.schedule.agents)
+    num_pairs = num_agents * (num_agents - 1)
+    max_entropy = entropy([1 / num_pairs] * num_pairs)
+    assert model.matrix_entropy == pytest.approx(max_entropy)
 
 
 def test_no_task_addition_failed_agents():
@@ -187,5 +212,3 @@ def test_example_params_single_agent_remaining():
 
 
 # TODO Test: agent assignee selection
-# TODO Test: assigning task to failed agent raises error
-# TODO Test: matrix_entropy
