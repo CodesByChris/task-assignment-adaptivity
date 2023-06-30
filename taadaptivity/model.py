@@ -61,9 +61,11 @@ class TaskModel(Model):
                 Note that agents have a third parameter, the fitness
                 $\\theta_i$, which is sampled for each agent individually upon
                 construction.
-            seed: Random seed for the random number generator. Note that Mesa
-                uses the same seed to its default RNG in self.random, but which
-                is not used here. See __new__ in Mesa's Model class.
+            seed: Seed for the NumPy random number generator used by the ABM
+                instance. Note that Mesa sets this seed also for the RNG in
+                self.random (see __new__ in Mesa's Model class). However, this
+                is not used here because it does not support the hypergeometric
+                distribution which the ABM needs.
         """
         super().__init__()
         self.max_steps = max_steps
