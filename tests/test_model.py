@@ -17,18 +17,18 @@ def test_simple_run(taskmodel_args):
 def test_idle_system(steps = 100, num_agents = 30, fitness = 50, performance = 0.01):
     """A system where no agent has any tasks should run indefinitely."""
     model = TaskModel(params = {"num_agents": num_agents, "t_new": 2 * steps, "loc": fitness,
-                                "sigma": 0, "performance": performance, "init_task_count": 0},
+                                "sigma": 0, "performance": performance, "init_tasks": 0},
                       max_steps = steps, seed = None)
     model.run_model()
     assert model.schedule.steps == steps
 
 
-def test_single_agent_system(steps = 100, t_new = 10, init_task_count = 15,
+def test_single_agent_system(steps = 100, t_new = 10, init_tasks = 15,
                              fitness = 50, performance = 0.01):
     """A system with one agent should run as well."""
     model = TaskModel(params = {"num_agents": 1, "t_new": t_new, "loc": fitness,
                                 "sigma": 0, "performance": performance,
-                                "init_task_count": init_task_count},
+                                "init_tasks": init_tasks},
                       max_steps = steps, seed = None)
     model.run_model()
     assert model.schedule.steps == steps
@@ -37,8 +37,7 @@ def test_single_agent_system(steps = 100, t_new = 10, init_task_count = 15,
 def test_system_collapse(num_agents = 40, t_new = 10):
     """Test system collapse by overloading all agents with the new tasks."""
     model = TaskModel(params = {"num_agents": num_agents, "t_new": t_new, "loc": 0.5,
-                                "sigma": 0, "performance": 0.01,
-                                "init_task_count": 0},
+                                "sigma": 0, "performance": 0.01, "init_tasks": 0},
                       max_steps = 2 * t_new, seed = None)
     model.run_model()
     assert model.schedule.steps == t_new, "Model did not stop early when no agents remain."
@@ -141,7 +140,7 @@ def test_fraction_failed_agents():
     num_agents = 40
     fitness = 100
     model = TaskModel({"num_agents": num_agents, "t_new": 2 * num_agents, "loc": fitness,
-                       "sigma": 0, "performance": 10, "init_task_count": 0},
+                       "sigma": 0, "performance": 10, "init_tasks": 0},
                       max_steps = None, seed = 1234)
     for step, agent in enumerate(model.schedule.agents):
         # Test fraction_failed_agents
@@ -150,7 +149,7 @@ def test_fraction_failed_agents():
 
         # Overload one agent
         model.step()
-        for _ in range(int(fitness - agent.task_count) + 1):
+        for _ in range(int(fitness - agent.tasks) + 1):
             agent.add_task(sender = None)
         model._update_failures()  # pylint: disable=protected-access
 
@@ -167,7 +166,7 @@ def test_matrix_entropy_maximum_case(mock_method):
     # Generate fully-connected network with edge-multiplicity 1000 for all pairs
     num_steps = 1000
     model = TaskModel({"num_agents": 50, "t_new": 10, "loc": 100, "sigma": 0,
-                        "performance": 10, "init_task_count": 0},
+                        "performance": 10, "init_tasks": 0},
                         max_steps = num_steps, seed = 1234)
     model.run_model()
     assert all(weight == num_steps for _, _, weight in model.network.edges.data("weight"))

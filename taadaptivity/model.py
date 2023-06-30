@@ -55,9 +55,9 @@ class TaskModel(Model):
                    which the agents solve tasks. All agents receive the same
                    value. The paper calls this parameter $\\tau_i$ and sets it
                    to 0.01.
-                6. "init_task_count": The second agent parameter. It is the
-                   number of tasks each agent has at the beginning of the
-                   simulation. The paper sets it to 15.
+                6. "init_tasks": The second agent parameter. It is the number of
+                   tasks each agent has at the beginning of the simulation. The
+                   paper sets it to 15.
                 Note that agents have a third parameter, the fitness
                 $\\theta_i$, which is sampled for each agent individually upon
                 construction.
@@ -84,7 +84,7 @@ class TaskModel(Model):
             # Sample agent's fitness
             curr_agent_params = {
                 "performance": params["performance"],
-                "init_task_count": params["init_task_count"],
+                "init_tasks": params["init_tasks"],
                 "fitness": self.rng.normal(loc=params["loc"], scale=params["sigma"], size=None),
             }
 
@@ -157,19 +157,19 @@ class TaskModel(Model):
 EXAMPLE_PARAMS = {
     "REGULAR": {
         "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
-                   "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_tasks": 15},
         "max_steps": 1000,
         "seed": 401310793357603506,
     },
     "SYSTEM_COLLAPSES": {
         "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                   "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_tasks": 15},
         "max_steps": 1000,
         "seed": 1227,
     },
     "SINGLE_AGENT_REMAINING": {
         "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                   "performance": 0.01, "init_task_count": 15},
+                   "performance": 0.01, "init_tasks": 15},
         "max_steps": 1000,
         "seed": 1232,
     }

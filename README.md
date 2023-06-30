@@ -17,7 +17,7 @@ Sliders allow to change model parameters and immediately see how the dynamics an
 
 ## Usage
 
-This repository provides scripts for studying (1) average model dynamics across runs and (2) each parameter's influence on the model dynamics.
+This repository provides scripts for studying (1) average model dynamics across runs and (2) how each parameter influences the model dynamics.
 Both scripts require all packages from `requirements.txt`, which you can install by running `pip install -r requirements.txt`.
 
 1. To study average model dynamics, run:

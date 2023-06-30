@@ -12,10 +12,9 @@ class TaskAgent(Agent):
     """Worker who solves and redistributes tasks.
 
     Attributes:
-        task_count: Number of tasks the agent has to solve; $x_i(t)$ in paper.
-        fitness: The maximum number of tasks the agent can solve; $\\theta_i$ in
-            paper.
-        performance: The rate at which the agent solves tasks; $\\tau_i$ in paper.
+        tasks: Number of tasks of the agent; $x_i(t)$ in paper.
+        fitness: Max number of tasks the agent can hold; $\\theta_i$ in paper.
+        performance: Rate at which the agent solves tasks; $\\tau_i$ in paper.
         has_failed: Boolean representing whether the agent has failed.
     """
 
@@ -30,23 +29,23 @@ class TaskAgent(Agent):
             model: Reference to the model containing the agent.
             agent_params: The initial values for the agent's parameters. The
                 following names need to be specified: "fitness", "performance",
-                "init_task_count".
+                "init_tasks".
         """
         super().__init__(unique_id, model)
         self.fitness = agent_params["fitness"]
         self.performance = agent_params["performance"]
-        self.task_count = agent_params["init_task_count"]
+        self.tasks = agent_params["init_tasks"]
         self.has_failed = False
         self.determine_failure()
         self._recipients = None  # used for simultaneous update
         self._num_tasks_to_redistribute = None  # used for simultaneous update
-        self._unsolved_task_count = None  # used for simultaneous update
+        self._unsolved_tasks = None  # used for simultaneous update
 
 
     def add_task(self, sender: TaskAgent | None):
         """Add one task to the agent's task count and update the network."""
         assert not self.has_failed, "Attempted to assign a task to a failed agent."
-        self.task_count += 1
+        self.tasks += 1
         if sender:
             self.model.G.edges[sender.pos, self.pos]["weight"] += 1
 
@@ -64,8 +63,8 @@ class TaskAgent(Agent):
 
 
     def determine_failure(self):
-        """Marks the agent as failed if its task_count exceeds its fitness."""
-        if not self.has_failed and self.task_count > self.fitness:
+        """Marks the agent as failed if its tasks exceeds its fitness."""
+        if not self.has_failed and self.tasks > self.fitness:
             self.has_failed = True
 
 
@@ -96,7 +95,7 @@ class TaskAgent(Agent):
         """
         if self.has_failed or self.fitness <= 0:
             return 1
-        return self.task_count / self.fitness
+        return self.tasks / self.fitness
 
 
     def _split_solve_redistribute_tasks(self):
@@ -104,33 +103,33 @@ class TaskAgent(Agent):
         if len(self.model.active_agents) < 2:
             # Special case: no redistribution because no other active agent exists
             self._num_tasks_to_redistribute = 0
-            self._unsolved_task_count = 0 if self.has_failed else self.task_count
-            self.task_count = 0
+            self._unsolved_tasks = 0 if self.has_failed else self.tasks
+            self.tasks = 0
             return
 
         # Determine hypergeometric params
         if self.has_failed:
             # Agent has failed in previous time-step --> Redistribute all tasks
             # p_i = 1
-            ngood = floor(self.task_count)
+            ngood = floor(self.tasks)
             nbad = 0
         else:
-            # p_i = (c + self.task_count/self.fitness)/(1+c)
-            ngood = floor(self.task_count)
+            # p_i = (c + self.tasks/self.fitness)/(1+c)
+            ngood = floor(self.tasks)
             nbad = self.fitness - ngood
 
         # p_i without replacement
         hgeom_params = {"ngood": ngood, "nbad": nbad, "nsample": ngood}
         self._num_tasks_to_redistribute = self.model.rng.hypergeometric(**hgeom_params)
-        self._unsolved_task_count = self.task_count - self._num_tasks_to_redistribute
-        self.task_count = 0
+        self._unsolved_tasks = self.tasks - self._num_tasks_to_redistribute
+        self.tasks = 0
 
 
     def _solve_tasks(self):
         """Solve the tasks for the current time step, see solution to Equation (3) in paper."""
-        self._unsolved_task_count = self._unsolved_task_count * exp(-self.performance)
-        self.task_count += self._unsolved_task_count
-        self._unsolved_task_count = None
+        self._unsolved_tasks = self._unsolved_tasks * exp(-self.performance)
+        self.tasks += self._unsolved_tasks
+        self._unsolved_tasks = None
 
 
     def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:

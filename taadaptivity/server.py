@@ -132,7 +132,7 @@ class TaskModelViz(TaskModel):
             "sigma": kwargs.pop("sigma"),
             "loc": kwargs.pop("loc"),
             "performance": kwargs.pop("performance"),
-            "init_task_count": kwargs.pop("init_task_count"),
+            "init_tasks": kwargs.pop("init_tasks"),
         }
         super().__init__(*args, **kwargs)
 
@@ -179,9 +179,9 @@ def build_server(params, max_steps, seed, description = None):
                              min_value = 0, max_value = 100, description = "Number of agents."),
         "t_new": Slider("Task arrival lag", value = params["t_new"], min_value = 0, max_value = 50,
                         description = "Number of steps after which each agent receives one task."),
-        "init_task_count": Slider("Initial task count", value = params["init_task_count"],
-                                  min_value = 0, max_value = 50,
-                                  description = "Task count of each agent at step 0."),
+        "init_tasks": Slider("Initial task count", value = params["init_tasks"],
+                             min_value = 0, max_value = 50,
+                             description = "Task count of each agent at step 0."),
         "performance": Slider("Performance", value = params["performance"],
                               min_value = 0, max_value = 1, step = 0.01,
                               description = "Agents' performance."),
