@@ -5,4 +5,5 @@ numpy
 pandas
 pytest
 scipy
+seaborn
 tqdm
