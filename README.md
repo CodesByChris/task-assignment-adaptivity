@@ -29,7 +29,7 @@ Both scripts require all packages from `requirements.txt`, which you can install
     ```bash
     python step_02_dashboard.py
     ```
-    - Alternatively, you can run one of the other `step_02*` files, which preset parameter values leading to special outcomes like the collapse of the entire team or the survival of a single agent.
+    - Alternatively, you can run one of the other `step_02*` files, which preset parameter values leading to special outcomes like the collapse of the entire team.
 
 
 ## Tests

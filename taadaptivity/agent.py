@@ -100,7 +100,8 @@ class TaskAgent(Agent):
 
     def _split_solve_redistribute_tasks(self):
         """Distribute tasks with probability p_i. Remaining tasks are left to solve."""
-        if len(self.model.active_agents) < 2:
+        active_agents = self.model.active_agents
+        if len(active_agents) == 0 or (len(active_agents) == 1 and self == active_agents[0]):
             # Special case: no redistribution because no other active agent exists
             self._num_tasks_to_redistribute = 0
             self._unsolved_tasks = 0 if self.has_failed else self.tasks

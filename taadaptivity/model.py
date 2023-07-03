@@ -169,10 +169,4 @@ EXAMPLE_PARAMS = {
         "max_steps": 1000,
         "seed": 1227,
     },
-    "SINGLE_AGENT_REMAINING": {
-        "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                   "performance": 0.01, "init_tasks": 15},
-        "max_steps": 1000,
-        "seed": 1232,
-    }
 }

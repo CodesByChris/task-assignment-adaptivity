@@ -134,22 +134,26 @@ def test_fraction_failed_agents():
     assert model.fraction_failed_agents == 1
 
     # Test 2: one agent fails every step
-    #     After every step, we add a number of tasks to one agent that is large
-    #     enough such that it fails. We set a high "performance" so that agents
-    #     do not fail from the regular task assignment dynamics.
+    #     After every step, we knock out the remaining agent with the smallest
+    #     fitness by adding a number of tasks that is large enough such that it
+    #     fails. Because this agent has the smallest fitness, no other agent
+    #     will fail even when receiving all tasks of the failing agent. We set a
+    #     high "performance" so that agents do not fail from the regular task
+    #     assignment dynamics.
     num_agents = 40
-    fitness = 100
-    model = TaskModel({"num_agents": num_agents, "t_new": 2 * num_agents, "loc": fitness,
-                       "sigma": 0, "performance": 10, "init_tasks": 0},
+    mean_fitness = 100
+    model = TaskModel({"num_agents": num_agents, "t_new": 2 * num_agents, "loc": mean_fitness,
+                       "sigma": 3, "performance": 10, "init_tasks": 0},
                       max_steps = None, seed = 1234)
-    for step, agent in enumerate(model.schedule.agents):
+    sorted_agents = sorted(model.schedule.agents, key = lambda a: a.fitness)
+    for step, agent in enumerate(sorted_agents):
         # Test fraction_failed_agents
         assert model.fraction_failed_agents == pytest.approx(step / num_agents)
         assert len(model.active_agents) == num_agents - step
 
         # Overload one agent
         model.step()
-        for _ in range(int(fitness - agent.tasks) + 1):
+        for _ in range(int(agent.fitness - agent.tasks) + 1):
             agent.add_task(sender = None)
         model._update_failures()  # pylint: disable=protected-access
 
@@ -166,8 +170,8 @@ def test_matrix_entropy_maximum_case(mock_method):
     # Generate fully-connected network with edge-multiplicity 1000 for all pairs
     num_steps = 1000
     model = TaskModel({"num_agents": 50, "t_new": 10, "loc": 100, "sigma": 0,
-                        "performance": 10, "init_tasks": 0},
-                        max_steps = num_steps, seed = 1234)
+                       "performance": 10, "init_tasks": 0},
+                      max_steps = num_steps, seed = 1234)
     model.run_model()
     assert all(weight == num_steps for _, _, weight in model.network.edges.data("weight"))
 
@@ -180,16 +184,47 @@ def test_matrix_entropy_maximum_case(mock_method):
 
 def test_no_task_addition_failed_agents():
     """Tests whether assigning tasks to a failed agent raises an error."""
-    model = TaskModel(**EXAMPLE_PARAMS["SINGLE_AGENT_REMAINING"])
+    model = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
     model.run_model()
-    remaining_agent = model.active_agents[0]
-    for failed_agent in filter(lambda a: a != remaining_agent, model.schedule.agents):
+    for failed_agent in filter(lambda a: a.has_failed, model.schedule.agents):
         try:
             failed_agent.add_task(sender = None)
         except AssertionError:
             pass
         else:
             pytest.fail("No exception raised when adding task to failed agent.")
+
+
+def test_last_agent():
+    """Tests whether last active agent is handled correctly."""
+
+    # Advance model until one agent remains
+    model = TaskModel(params = {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                                "performance": 0.01, "init_tasks": 15},
+                      max_steps = 1000,
+                      seed = 1232)
+    remaining_agents = model.active_agents
+    while len(remaining_agents) > 1:
+        model.step()
+        remaining_agents = model.active_agents
+        # Note: model._update_failures re-generates the list behind
+        #     model.active_agents. Hence, we have to assign it again to
+        #     remaining_agents after each step.
+    assert len(remaining_agents) == 1, "Model params for which no single agent remains."
+
+    # Test last agent gets all tasks from failed agents
+    last_agent = model.active_agents[0]
+    prev_fails = [a for a in model.schedule.agents if a.has_failed and a.tasks > a.fitness]
+    for agent in model.schedule.agents:
+        agent.step()
+
+    assert len(prev_fails) > 0
+    assert all(set(a._recipients) == {last_agent} for a in prev_fails), "Not only last_agent gets tasks."
+    assert all(a._unsolved_tasks < 1 for a in prev_fails)
+    assert all(a._num_tasks_to_redistribute == len(a._recipients) for a in prev_fails)
+
+    # Test last agent re-assigns no tasks
+    assert len(last_agent._recipients) == 0
 
 
 def test_example_params_system_collapses():
@@ -201,13 +236,5 @@ def test_example_params_system_collapses():
     assert sum(agent.has_failed for agent in model.schedule.agents) == len(model.schedule.agents)
 
 
-def test_example_params_single_agent_remaining():
-    """Tests if the system has no active agents after the simulation."""
-    model = TaskModel(**EXAMPLE_PARAMS["SINGLE_AGENT_REMAINING"])
-    model.run_model()
-    assert model.fraction_failed_agents < 1
-    assert len(model.active_agents) == 1
-    assert sum(not agent.has_failed for agent in model.schedule.agents) == 1
-
-
 # TODO Test: agent assignee selection
+# TODO Test: does an agent redistribute really all chosen tasks?
