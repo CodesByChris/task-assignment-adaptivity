@@ -158,10 +158,10 @@ class TaskModel(Model):
 # Parameter sets
 EXAMPLE_PARAMS = {
     "REGULAR": {
-        "params": {"num_agents": 50, "t_new": 10, "loc": 50, "sigma": 8.5,
+        "params": {"num_agents": 30, "t_new": 10, "loc": 50, "sigma": 16,
                    "performance": 0.01, "init_tasks": 15},
         "max_steps": 1000,
-        "seed": 401310793357603506,
+        "seed": 16,
     },
     "SYSTEM_COLLAPSES": {
         "params": {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
