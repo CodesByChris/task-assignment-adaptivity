@@ -1,5 +1,6 @@
 """Pytest setup for TaskModel."""
 
+from collections import defaultdict, Counter
 from unittest.mock import patch
 import pytest
 import networkx as nx
@@ -54,6 +55,40 @@ def test_step_counter(taskmodel_args):
         assert step == model.schedule.steps
         step += 1
         model.step()
+
+
+@pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
+def test_no_tasks_lost(taskmodel_args):
+    """Test that no agent loses tasks marked for redistribution."""
+
+    # Create model
+    model = TaskModel(**taskmodel_args)
+    all_agents = model.schedule.agents
+
+    # Track task redistribution
+    num_steps = 0
+    while num_steps < taskmodel_args["max_steps"]:
+        task_assignments = defaultdict(Counter)
+        old_network = model.network
+
+        # Track step
+        for agent in all_agents:
+            agent.step()
+            assert agent._num_tasks_to_redistribute == len(agent._recipients)
+            task_assignments[agent.pos].update(a.pos for a in agent._recipients)
+
+        # Track advance
+        for agent in all_agents:
+            agent.advance()
+        new_network = model.network
+
+        # Validate network structure
+        for source_node, target_node, old_weight in old_network.edges.data("weight"):
+            new_weight = new_network.edges[source_node, target_node]["weight"]
+            assert new_weight - old_weight == task_assignments[source_node][target_node]
+
+        model._update_failures()
+        num_steps += 1
 
 
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
@@ -187,12 +222,8 @@ def test_no_task_addition_failed_agents():
     model = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
     model.run_model()
     for failed_agent in filter(lambda a: a.has_failed, model.schedule.agents):
-        try:
+        with pytest.raises(AssertionError):
             failed_agent.add_task(sender = None)
-        except AssertionError:
-            pass
-        else:
-            pytest.fail("No exception raised when adding task to failed agent.")
 
 
 def test_last_agent():
@@ -234,7 +265,3 @@ def test_example_params_system_collapses():
     assert model.fraction_failed_agents == 1
     assert len(model.active_agents) == 0
     assert sum(agent.has_failed for agent in model.schedule.agents) == len(model.schedule.agents)
-
-
-# TODO Test: agent assignee selection
-# TODO Test: does an agent redistribute really all chosen tasks?
