@@ -164,7 +164,7 @@ def build_server(params, max_steps, seed, description = None):
         </div>
     """
     line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
-                            {"Label": "Fraction_Failed", "Color": "red"}],
+                             {"Label": "Fraction_Failed", "Color": "black"}],
                             data_collector_name = "datacollector")
 
     visualization_elements = [lambda _: legend, network_plot, line_plot]
