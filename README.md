@@ -1,11 +1,11 @@
-# ABM for Team Breakdowns after Task Overloading
+# Systemic Adaptivity in Task-Oriented Teams
 
-Interactive visualization of an agent-based model (ABM) investigating how overloaded team members trigger the breakdown of software development teams.
+Interactive visualization of an agent-based model (ABM) studying how project teams adapt to the loss of overloaded team members.
 
 ![ABM dashboard with sliders, ](docs/dashboard.png)
 
 This model is based on the research paper [*"The Downside of Heterogeneity: How Established Relations Counteract Systemic Adaptivity in Tasks Assignments"*](https://www.mdpi.com/1099-4300/23/12/1677) by Giona Casiraghi, Christian Zingg, and Frank Schweitzer published in the journal *Entropy (2021, 23(12), 1677)*.
-In this ABM, team members are represented as agents, each with their own task-solving capacity.
+Team members are represented as agents, each with their own task-solving capacity.
 These agents can either solve tasks or redistribute them to avoid exceeding their capacity.
 If that still happens, they drop out, leaving the remaining members to compensate for the lost workforce.
 The ABM showcases dangerous failure cascades in teams whose members exhibit significant heterogeneity in their task-solving capacity.
