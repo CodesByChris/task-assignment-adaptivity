@@ -1,3 +1,6 @@
+[![Workflow: Test & Lint](https://github.com/CodesByChris/task-assignment-adaptivity/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/CodesByChris/task-assignment-adaptivity/actions/workflows/test-and-lint.yml)
+
+
 # Systemic Adaptivity in Task-Oriented Teams
 
 Interactive visualization of an agent-based model (ABM) studying how project teams adapt to the loss of overloaded team members.
