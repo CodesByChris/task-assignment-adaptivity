@@ -1,7 +1,7 @@
 """Model class.
 
-Some parameter sets leading to special outcomes of the ABM are included at the bottom.
-They can be used by simply unpacking them into __init__, e.g.:
+Some parameter sets leading to special outcomes of the ABM are included at the bottom. They can be
+used by simply unpacking them into __init__, e.g.:
 abm = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
 """
 
@@ -20,10 +20,10 @@ class TaskModel(Model):
     """System of TaskAgents.
 
     Attributes:
-        max_steps: Number of steps after which to stop model execution when
-            using run_model(). The paper uses 500 and 1000.
-        t_new: Number of time steps after which one new task arrives at each
-            agent. The paper uses 10, see p.4.
+        max_steps: Number of steps after which to stop model execution when using run_model(). The
+            paper uses 500 and 1000.
+        t_new: Number of time steps after which one new task arrives at each agent. The paper uses
+            10, see p.4.
         rng: Numpy RNG instance to use when sampling random numbers.
         schedule: The scheduler.
         grid: The network grid.
@@ -33,39 +33,31 @@ class TaskModel(Model):
     def __init__(self, params: Dict[str, float], max_steps: int, seed: int | None = None):
         """Initialize the instance.
 
-        It initializes a numpy RNG to use within the ABM in the place of Mesa's
-        self.random. Numpy has the advantage that it implements the
-        hypergeometric distribution that the ABM needs.
+        It initializes a numpy RNG to use within the ABM in the place of Mesa's self.random. Numpy
+        has the advantage that it implements the hypergeometric distribution that the ABM needs.
 
         Args:
-            max_steps: Number of steps after which to stop model execution when
-                using self.run_model().
-            params: Represents the parameters of the model. It is a dict with
-                the following entries:
+            max_steps: Number of steps after which to stop model execution when using
+                self.run_model().
+            params: Represents the parameters of the model. It is a dict with the following entries:
                 1. "num_agents": Number of agents.
-                2. "t_new": Time difference after which external tasks arrive.
-                   The paper calls this parameter $T_{new}$ and sets it to 10.
-                3. "loc": The location parameter of the normal distribution from
-                   which to sample the agents' fitness values. The paper calls
-                   this parameter $\\mu$ and sets it to 50.
-                4. "sigma": The standard deviation parameter of the normal
-                   distribution from which to sample the agents' fitness values.
-                   The paper calls this parameter $\\sigma$.
-                5. "performance": The first agent parameter. It is the rate at
-                   which the agents solve tasks. All agents receive the same
-                   value. The paper calls this parameter $\\tau_i$ and sets it
-                   to 0.01.
-                6. "init_tasks": The second agent parameter. It is the number of
-                   tasks each agent has at the beginning of the simulation. The
-                   paper sets it to 15.
-                Note that agents have a third parameter, the fitness
-                $\\theta_i$, which is sampled for each agent individually upon
-                construction.
-            seed: Seed for the NumPy random number generator used by the ABM
-                instance. Note that Mesa sets this seed also for the RNG in
-                self.random (see __new__ in Mesa's Model class). However, this
-                is not used here because it does not support the hypergeometric
-                distribution which the ABM needs.
+                2. "t_new": Time difference after which external tasks arrive. The paper calls this
+                   parameter $T_{new}$ and sets it to 10.
+                3. "loc": The location parameter of the normal distribution from which to sample the
+                   agents' fitness values. The paper calls this parameter $\\mu$ and sets it to 50.
+                4. "sigma": The standard deviation parameter of the normal distribution from which
+                   to sample the agents' fitness values. The paper calls this parameter $\\sigma$.
+                5. "performance": The first agent parameter. It is the rate at which the agents
+                   solve tasks. All agents receive the same value. The paper calls this parameter
+                   $\\tau_i$ and sets it to 0.01.
+                6. "init_tasks": The second agent parameter. It is the number of tasks each agent
+                   has at the beginning of the simulation. The paper sets it to 15.
+                Note that agents have a third parameter, the fitness $\\theta_i$, which is sampled
+                for each agent individually upon construction.
+            seed: Seed for the NumPy random number generator used by the ABM instance. Note that
+                Mesa sets this seed also for the RNG in self.random (see __new__ in Mesa's Model
+                class). However, this is not used here because it does not support the
+                hypergeometric distribution which the ABM needs.
         """
         super().__init__()
         self.max_steps = max_steps

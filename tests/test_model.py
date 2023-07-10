@@ -133,12 +133,11 @@ def test_network_generation_circular(mock_method, taskmodel_args):
     max_steps = taskmodel_args["max_steps"]
     num_agents = taskmodel_args["params"]["num_agents"]
     assert mock_method.call_count == max_steps * num_agents
-    # Note: "==" fails if we ever change the implementation of TaskModel.step()
-    #     such that it calls step() and advance() only for active agents instead
-    #     of all agents. This test will also fail if we change TaskAgent.step()
-    #     such that it does not call TaskAgent._choose_recipients() for failed
-    #     agents and directly returns an empty list to signal that no recipients
-    #     shall be chosen.
+    # Note: "==" fails if we ever change the implementation of TaskModel.step() such that it calls
+    #     step() and advance() only for active agents instead of all agents. This test will also
+    #     fail if we change TaskAgent.step() such that it does not call
+    #     TaskAgent._choose_recipients() for failed agents and directly returns an empty list to
+    #     signal that no recipients shall be chosen.
 
     # Test: circular network
     adjacency = nx.to_numpy_array(model.network)
@@ -146,11 +145,10 @@ def test_network_generation_circular(mock_method, taskmodel_args):
         assert (row > 0).sum() == 1 or (row == 0).all(), "Agents cannot have more than 1 neighbour."
 
     # Test: network generation
-    #     Retrieve all calls from the mock and subtract the respective
-    #     number of edges from the adjacency matrix. If the ABM correctly
-    #     generated a circular network, the remaining adjacency matrix
-    #     should not have any edges left. If agents fail, the remaining
-    #     adjacency matrix can have negative entries.
+    #     Retrieve all calls from the mock and subtract the respective number of edges from the
+    #     adjacency matrix. If the ABM correctly generated a circular network, the remaining
+    #     adjacency matrix should not have any edges left. If agents fail, the remaining adjacency
+    #     matrix can have negative entries.
     adjacency = nx.to_numpy_array(model.network)
     num_agents = len(model.schedule.agents)
     for call in mock_method.call_args_list:
@@ -170,11 +168,10 @@ def test_fraction_failed_agents():
     assert model.fraction_failed_agents == 1
 
     # Test 2: one agent fails every step
-    #     After every step, we knock out the remaining agent with the smallest
-    #     fitness by adding a number of tasks that is large enough such that it
-    #     fails. Because this agent has the smallest fitness, no other agent
-    #     will fail even when receiving all tasks of the failing agent. We set a
-    #     high "performance" so that agents do not fail from the regular task
+    #     After every step, we knock out the remaining agent with the smallest fitness by adding a
+    #     number of tasks that is large enough such that it fails. Because this agent has the
+    #     smallest fitness, no other agent will fail even when receiving all tasks of the failing
+    #     agent. We set a high "performance" so that agents do not fail from the regular task
     #     assignment dynamics.
     num_agents = 40
     mean_fitness = 100
@@ -238,9 +235,8 @@ def test_last_agent():
     while len(remaining_agents) > 1:
         model.step()
         remaining_agents = model.active_agents
-        # Note: model._update_failures re-generates the list behind
-        #     model.active_agents. Hence, we have to assign it again to
-        #     remaining_agents after each step.
+        # Note: model._update_failures re-generates the list behind model.active_agents. Hence, we
+        #     have to assign it again to remaining_agents after each step.
     assert len(remaining_agents) == 1, "Model params for which no single agent remains."
 
     # Test last agent gets all tasks from failed agents

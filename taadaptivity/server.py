@@ -22,18 +22,16 @@ def rescale(values: List[float] | float, lower_in: float | None, upper_in: float
     and all input values are assumed to be in [lower_in, upper_in].
 
     Args:
-        values: The values to rescale. They are supposed to be in the interval
-            [lower_in, upper_in]. Alternatively, values can be a single float,
-            in which case this value is treated as a list of one element.
-            Moreover, then also the return value is a single float instead of a
+        values: The values to rescale. They are supposed to be in the interval [lower_in, upper_in].
+            Alternatively, values can be a single float, in which case this value is treated as a
+            list of one element. Moreover, then also the return value is a single float instead of a
             list with one element.
-        lower_in: Lower bound of the source interval. If None, rescale takes
-            `min(values)`. However, you can manually set lower_in to a smaller
-            value if needed. This can be useful, for example, when rescale is
-            called on multiple ranges, and you want to use a global minimum
+        lower_in: Lower bound of the source interval. If None, rescale takes `min(values)`. However,
+            you can manually set lower_in to a smaller value if needed. This can be useful, for
+            example, when rescale is called on multiple ranges, and you want to use a global minimum
             value across all calls.
-        upper_in: Same as lower_in but for the upper bound of the source
-            interval. If None, rescale takes `max(values)`.
+        upper_in: Same as lower_in but for the upper bound of the source interval. If None, rescale
+            takes `max(values)`.
         lower_out: Lower bound of the target interval.
         upper_out: Upper bound of the target interval.
 
@@ -71,17 +69,15 @@ def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=i
     """Returns a plotting layout specifying how to plot the nodes and edges in G.
 
     Args:
-        G: The network whose plotting layout shall be computed. ModularServer
-            passes this argument automatically as abm.G, where abm is an
-            instance of TaskModel.
+        G: The network whose plotting layout shall be computed. ModularServer passes this argument
+            automatically as abm.G, where abm is an instance of TaskModel.
         min_size: Minimum node size in plot.
         max_size: Maximum node size in plot.
 
     Returns:
         The layout as a dict with two entries:
-        1. "nodes": A list whose entries correspond to the nodes in G and whose
-           values are dicts specifying the plotting style of the respective
-           nodes, i.e. "id", "size", and "color".
+        1. "nodes": A list whose entries correspond to the nodes in G and whose values are dicts
+           specifying the plotting style of the respective nodes, i.e. "id", "size", and "color".
         2. "edges": Same as "nodes" but for the edges.
     """
     portrayal = {}
@@ -191,6 +187,5 @@ def build_server(params, max_steps, seed, description=None):
     }
 
     # Server
-    server = ModularServer(TaskModelViz, visualization_elements=visualization_elements,
-                           name="Task Assignment Model", model_params=model_params, port=None)
-    return server
+    return ModularServer(TaskModelViz, visualization_elements=visualization_elements,
+                         name="Task Assignment Model", model_params=model_params, port=None)

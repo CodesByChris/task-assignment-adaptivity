@@ -27,9 +27,8 @@ class TaskAgent(Agent):
         Args:
             unique_id: Agent's ID.
             model: Reference to the model containing the agent.
-            agent_params: The initial values for the agent's parameters. The
-                following names need to be specified: "fitness", "performance",
-                "init_tasks".
+            agent_params: The initial values for the agent's parameters. The following names need to
+                be specified: "fitness", "performance", "init_tasks".
         """
         super().__init__(unique_id, model)
         self.fitness = agent_params["fitness"]
@@ -84,8 +83,8 @@ class TaskAgent(Agent):
     def task_load(self) -> float:
         """Ratio of the agent's task solving capacity currently in use.
 
-        If the agent has failed, this ratio is defined as 1 to represent its
-        inability to solve tasks.
+        If the agent has failed, this ratio is defined as 1 to represent its inability to solve
+        tasks.
         """
         if self.has_failed or self.fitness <= 0:
             return 1
@@ -127,8 +126,8 @@ class TaskAgent(Agent):
     def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:
         """Sample recipents for tasks. see Equation (6) in paper.
 
-        Recipients can be sampled multiple times, in which case they appear in
-        the returned list more than once.
+        Recipients can be sampled multiple times, in which case they appear in the returned list
+        more than once.
 
         Args:
             num_recipients: The number of recipients to sample.
