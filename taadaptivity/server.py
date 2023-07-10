@@ -67,7 +67,7 @@ def rescale(values: List[float] | float, lower_in: float | None, upper_in: float
     return scaled_values[0] if is_single_value else scaled_values
 
 
-def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disable=invalid-name
+def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=invalid-name
     """Returns a plotting layout specifying how to plot the nodes and edges in G.
 
     Args:
@@ -87,7 +87,7 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
     portrayal = {}
 
     # Node renderer
-    agents = [ags[0] for _, ags in G.nodes(data = "agent")]
+    agents = [ags[0] for _, ags in G.nodes(data="agent")]
     min_fitness = min(a.fitness for a in agents)
     max_fitness = max(a.fitness for a in agents)
 
@@ -112,7 +112,7 @@ def network_portrayal(G: DiGraph, min_size = 2, max_size = 15):  # pylint: disab
             "id": edge_id,
             "source": source,
             "target": target,
-            "color": to_hex((0, 0, 0, opacity), keep_alpha = True),
+            "color": to_hex((0, 0, 0, opacity), keep_alpha=True),
             "alpha": 0.5,
             "width": 2,
         })
@@ -152,52 +152,45 @@ class TaskModelViz(TaskModel):
         return self.matrix_entropy / entropy(equal_probs)
 
 
-def build_server(params, max_steps, seed, description = None):
+def build_server(params, max_steps, seed, description=None):
     """Builds a ModularServer with the provided parameters as initial values of the sliders."""
     # Plot widgets
-    network_plot = NetworkModule(network_portrayal, canvas_height = 550, canvas_width = 864)
+    network_plot = NetworkModule(network_portrayal, canvas_height=550, canvas_width=864)
     legend = """
         <div style="text-align: center;">
             Agents: <span style="padding:10px;"/>
-            <span style="color:#CC0000;">&#x25CF;</span> active (color-intensity: task load, size: fitness)
+            <span style="color:#CC0000;">&#x25CF;</span>
+                active (color-intensity: task load, size: fitness)
             <span style="padding:10px;"/> &#x25CF; failed
         </div>
     """
     line_plot = ChartModule([{"Label": "Matrix_Entropy", "Color": "blue"},  # lock-in strength
                              {"Label": "Fraction_Failed", "Color": "black"}],
-                            data_collector_name = "datacollector")
+                            data_collector_name="datacollector")
 
     visualization_elements = [lambda _: legend, network_plot, line_plot]
     if description:
         visualization_elements.append(lambda _: description)
 
-
     # Input widgets: Sliders and NumberInputs
     model_params = {
-        "seed": NumberInput("Random seed", value = seed, description = "Random seed"),
-        "num_agents": Slider("Number of agents", value = params["num_agents"],
-                             min_value = 0, max_value = 100, description = "Number of agents."),
-        "t_new": Slider("Task arrival lag", value = params["t_new"], min_value = 0, max_value = 50,
-                        description = "Number of steps after which each agent receives one task."),
-        "init_tasks": Slider("Initial task count", value = params["init_tasks"],
-                             min_value = 0, max_value = 50,
-                             description = "Task count of each agent at step 0."),
-        "performance": Slider("Performance", value = params["performance"],
-                              min_value = 0, max_value = 1, step = 0.01,
-                              description = "Agents' performance."),
-        "sigma": Slider("sigma", value = params["sigma"], min_value = 0, max_value = 50,
-                        step = 0.1, description = "Standard deviation of the agents' fitness."),
+        "seed": NumberInput("Random seed", value=seed, description="Random seed"),
+        "num_agents": Slider("Number of agents", value=params["num_agents"],
+                             min_value=0, max_value=100, description="Number of agents."),
+        "t_new": Slider("Task arrival lag", value=params["t_new"], min_value=0, max_value=50,
+                        description="Number of steps after which each agent receives one task."),
+        "init_tasks": Slider("Initial task count", value=params["init_tasks"],
+                             min_value=0, max_value=50,
+                             description="Task count of each agent at step 0."),
+        "performance": Slider("Performance", value=params["performance"], min_value=0, max_value=1,
+                              step=0.01, description="Agents' performance."),
+        "sigma": Slider("sigma", value=params["sigma"], min_value=0, max_value=50,
+                        step=0.1, description="Standard deviation of the agents' fitness."),
         "loc": params["loc"],
         "max_steps": max_steps,
     }
 
-
     # Server
-    server = ModularServer(
-        TaskModelViz,
-        visualization_elements = visualization_elements,
-        name = "Task Assignment Model",
-        model_params = model_params,
-        port = None
-    )
+    server = ModularServer(TaskModelViz, visualization_elements=visualization_elements,
+                           name="Task Assignment Model", model_params=model_params, port=None)
     return server

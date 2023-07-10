@@ -41,14 +41,12 @@ class TaskAgent(Agent):
         self._num_tasks_to_redistribute = None  # used for simultaneous update
         self._unsolved_tasks = None  # used for simultaneous update
 
-
     def add_task(self, sender: TaskAgent | None):
         """Add one task to the agent's task count and update the network."""
         assert not self.has_failed, "Attempted to assign a task to a failed agent."
         self.tasks += 1
         if sender:
             self.model.G.edges[sender.pos, self.pos]["weight"] += 1
-
 
     def count_assignments(self, recipient: TaskAgent) -> int:
         """Counts how often self has assigned tasks to recipient in the past.
@@ -61,12 +59,10 @@ class TaskAgent(Agent):
         """
         return self.model.G.edges[self.pos, recipient.pos]["weight"]
 
-
     def determine_failure(self):
         """Marks the agent as failed if its tasks exceeds its fitness."""
         if not self.has_failed and self.tasks > self.fitness:
             self.has_failed = True
-
 
     def step(self):
         """Stage changes: (i) how many tasks to solve, and (ii) to whom to redistribute tasks.
@@ -76,7 +72,6 @@ class TaskAgent(Agent):
         self._split_solve_redistribute_tasks()
         self._recipients = self._choose_recipients(self._num_tasks_to_redistribute)
 
-
     def advance(self):
         """Apply changes staged by step().
 
@@ -84,7 +79,6 @@ class TaskAgent(Agent):
         """
         self._redistribute_tasks()
         self._solve_tasks()
-
 
     @property
     def task_load(self) -> float:
@@ -96,7 +90,6 @@ class TaskAgent(Agent):
         if self.has_failed or self.fitness <= 0:
             return 1
         return self.tasks / self.fitness
-
 
     def _split_solve_redistribute_tasks(self):
         """Distribute tasks with probability p_i. Remaining tasks are left to solve."""
@@ -125,13 +118,11 @@ class TaskAgent(Agent):
         self._unsolved_tasks = self.tasks - self._num_tasks_to_redistribute
         self.tasks = 0
 
-
     def _solve_tasks(self):
         """Solve the tasks for the current time step, see solution to Equation (3) in paper."""
         self._unsolved_tasks = self._unsolved_tasks * exp(-self.performance)
         self.tasks += self._unsolved_tasks
         self._unsolved_tasks = None
-
 
     def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:
         """Sample recipents for tasks. see Equation (6) in paper.
@@ -157,9 +148,8 @@ class TaskAgent(Agent):
         probs /= sum(probs)
 
         # Get recipients
-        ids = self.model.rng.choice(num_agents, size = num_recipients, replace = True, p = probs)
+        ids = self.model.rng.choice(num_agents, size=num_recipients, replace=True, p=probs)
         return [self.model.active_agents[rec_id] for rec_id in ids]
-
 
     def _redistribute_tasks(self):
         """Redistribute the tasks for the current time step."""

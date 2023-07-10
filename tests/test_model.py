@@ -1,4 +1,5 @@
 """Pytest setup for TaskModel."""
+# pylint: disable=protected-access
 
 from collections import defaultdict, Counter
 from unittest.mock import patch
@@ -15,31 +16,29 @@ def test_simple_run(taskmodel_args):
     model.run_model()
 
 
-def test_idle_system(steps = 100, num_agents = 30, fitness = 50, performance = 0.01):
+def test_idle_system(steps=100, num_agents=30, fitness=50, performance=0.01):
     """A system where no agent has any tasks should run indefinitely."""
-    model = TaskModel(params = {"num_agents": num_agents, "t_new": 2 * steps, "loc": fitness,
-                                "sigma": 0, "performance": performance, "init_tasks": 0},
-                      max_steps = steps, seed = None)
+    model = TaskModel(params={"num_agents": num_agents, "t_new": 2 * steps, "loc": fitness,
+                              "sigma": 0, "performance": performance, "init_tasks": 0},
+                      max_steps=steps, seed=None)
     model.run_model()
     assert model.schedule.steps == steps
 
 
-def test_single_agent_system(steps = 100, t_new = 10, init_tasks = 15,
-                             fitness = 50, performance = 0.01):
+def test_single_agent_system(steps=100, t_new=10, init_tasks=15, fitness=50, performance=0.01):
     """A system with one agent should run as well."""
-    model = TaskModel(params = {"num_agents": 1, "t_new": t_new, "loc": fitness,
-                                "sigma": 0, "performance": performance,
-                                "init_tasks": init_tasks},
-                      max_steps = steps, seed = None)
+    model = TaskModel(params={"num_agents": 1, "t_new": t_new, "loc": fitness, "sigma": 0,
+                              "performance": performance, "init_tasks": init_tasks},
+                      max_steps=steps, seed=None)
     model.run_model()
     assert model.schedule.steps == steps
 
 
-def test_system_collapse(num_agents = 40, t_new = 10):
+def test_system_collapse(num_agents=40, t_new=10):
     """Test system collapse by overloading all agents with the new tasks."""
-    model = TaskModel(params = {"num_agents": num_agents, "t_new": t_new, "loc": 0.5,
-                                "sigma": 0, "performance": 0.01, "init_tasks": 0},
-                      max_steps = 2 * t_new, seed = None)
+    model = TaskModel(params={"num_agents": num_agents, "t_new": t_new, "loc": 0.5, "sigma": 0,
+                              "performance": 0.01, "init_tasks": 0},
+                      max_steps=2 * t_new, seed=None)
     model.run_model()
     assert model.schedule.steps == t_new, "Model did not stop early when no agents remain."
     assert model.fraction_failed_agents == 1
@@ -92,7 +91,7 @@ def test_no_tasks_lost(taskmodel_args):
 
 
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
-def test_repeatable_datacollection(taskmodel_args, num_reps = 5):
+def test_repeatable_datacollection(taskmodel_args, num_reps=5):
     """Check that datacollection is equal when re-running the model for the same seed."""
     for seed in range(0, 1000, 200):
         old_model_df = None
@@ -124,14 +123,16 @@ def choose_recipients_circle(self, num_recipients):
 
 
 @pytest.mark.parametrize("taskmodel_args", EXAMPLE_PARAMS.values())
-@patch.object(TaskAgent, "_choose_recipients", side_effect = choose_recipients_circle, autospec = True)
+@patch.object(TaskAgent, "_choose_recipients", side_effect=choose_recipients_circle, autospec=True)
 def test_network_generation_circular(mock_method, taskmodel_args):
     """Test network generation by generating a circular network."""
     model = TaskModel(**taskmodel_args)
     model.run_model()
 
     # Test: each agent called in every step
-    assert mock_method.call_count == taskmodel_args["max_steps"] * taskmodel_args["params"]["num_agents"]
+    max_steps = taskmodel_args["max_steps"]
+    num_agents = taskmodel_args["params"]["num_agents"]
+    assert mock_method.call_count == max_steps * num_agents
     # Note: "==" fails if we ever change the implementation of TaskModel.step()
     #     such that it calls step() and advance() only for active agents instead
     #     of all agents. This test will also fail if we change TaskAgent.step()
@@ -142,7 +143,7 @@ def test_network_generation_circular(mock_method, taskmodel_args):
     # Test: circular network
     adjacency = nx.to_numpy_array(model.network)
     for row in adjacency:
-        assert (row > 0).sum() == 1 or (row == 0).all(), "Agents only have 1 neighbour (or 0 if they never reassigned any task)."
+        assert (row > 0).sum() == 1 or (row == 0).all(), "Agents cannot have more than 1 neighbour."
 
     # Test: network generation
     #     Retrieve all calls from the mock and subtract the respective
@@ -179,8 +180,8 @@ def test_fraction_failed_agents():
     mean_fitness = 100
     model = TaskModel({"num_agents": num_agents, "t_new": 2 * num_agents, "loc": mean_fitness,
                        "sigma": 3, "performance": 10, "init_tasks": 0},
-                      max_steps = None, seed = 1234)
-    sorted_agents = sorted(model.schedule.agents, key = lambda a: a.fitness)
+                      max_steps=None, seed=1234)
+    sorted_agents = sorted(model.schedule.agents, key=lambda a: a.fitness)
     for step, agent in enumerate(sorted_agents):
         # Test fraction_failed_agents
         assert model.fraction_failed_agents == pytest.approx(step / num_agents)
@@ -189,7 +190,7 @@ def test_fraction_failed_agents():
         # Overload one agent
         model.step()
         for _ in range(int(agent.fitness - agent.tasks) + 1):
-            agent.add_task(sender = None)
+            agent.add_task(sender=None)
         model._update_failures()  # pylint: disable=protected-access
 
 
@@ -198,7 +199,7 @@ def choose_all_recipients(self, _):
     return [a for a in self.model.schedule.agents if a.unique_id != self.unique_id]
 
 
-@patch.object(TaskAgent, "_choose_recipients", side_effect = choose_all_recipients, autospec = True)
+@patch.object(TaskAgent, "_choose_recipients", side_effect=choose_all_recipients, autospec=True)
 def test_matrix_entropy_maximum_case(mock_method):
     """Tests whether a network with equal edge counts everywhere yields the highest entropy."""
 
@@ -206,7 +207,7 @@ def test_matrix_entropy_maximum_case(mock_method):
     num_steps = 1000
     model = TaskModel({"num_agents": 50, "t_new": 10, "loc": 100, "sigma": 0,
                        "performance": 10, "init_tasks": 0},
-                      max_steps = num_steps, seed = 1234)
+                      max_steps=num_steps, seed=1234)
     model.run_model()
     assert all(weight == num_steps for _, _, weight in model.network.edges.data("weight"))
 
@@ -223,17 +224,16 @@ def test_no_task_addition_failed_agents():
     model.run_model()
     for failed_agent in filter(lambda a: a.has_failed, model.schedule.agents):
         with pytest.raises(AssertionError):
-            failed_agent.add_task(sender = None)
+            failed_agent.add_task(sender=None)
 
 
 def test_last_agent():
     """Tests whether last active agent is handled correctly."""
 
     # Advance model until one agent remains
-    model = TaskModel(params = {"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
-                                "performance": 0.01, "init_tasks": 15},
-                      max_steps = 1000,
-                      seed = 1232)
+    model = TaskModel(params={"num_agents": 10, "t_new": 10, "loc": 50, "sigma": 16,
+                              "performance": 0.01, "init_tasks": 15},
+                      max_steps=1000, seed=1232)
     remaining_agents = model.active_agents
     while len(remaining_agents) > 1:
         model.step()
@@ -250,7 +250,7 @@ def test_last_agent():
         agent.step()
 
     assert len(prev_fails) > 0
-    assert all(set(a._recipients) == {last_agent} for a in prev_fails), "Not only last_agent gets tasks."
+    assert all(set(a._recipients) == {last_agent} for a in prev_fails), "More than one recipient."
     assert all(a._unsolved_tasks < 1 for a in prev_fails)
     assert all(a._num_tasks_to_redistribute == len(a._recipients) for a in prev_fails)
 

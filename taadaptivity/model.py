@@ -104,7 +104,6 @@ class TaskModel(Model):
             agent_reporters={"Task_Load": "task_load"}
         )
 
-
     def step(self):
         """Advance the ABM by one time step."""
         # Advance agents
@@ -115,7 +114,7 @@ class TaskModel(Model):
         if curr_step > 0 and curr_step % self.t_new == 0:
             for agent in self.schedule.agents:
                 if not agent.has_failed:
-                    agent.add_task(sender = None)
+                    agent.add_task(sender=None)
 
         # Update agent failures
         self._update_failures()
@@ -125,18 +124,15 @@ class TaskModel(Model):
         if self.schedule.steps == self.max_steps or self.fraction_failed_agents == 1:
             self.running = False
 
-
     @property
     def network(self) -> DiGraph:
         """A copy of the grid."""
         return self.G.copy()
 
-
     @property
     def fraction_failed_agents(self) -> int:
         """Ratio of failed agents, see Equation (2) in the paper."""
         return 1 - len(self.active_agents) / len(self.schedule.agents)
-
 
     @property
     def matrix_entropy(self) -> float:
@@ -146,7 +142,6 @@ class TaskModel(Model):
             # We consider an empty network as fully deterministic, i.e. no randomness
             return 0
         return entropy(entries / entries.sum())
-
 
     def _update_failures(self):
         """Removes failed agents from self.active_agents."""
