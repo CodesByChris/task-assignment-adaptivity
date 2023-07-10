@@ -1,4 +1,5 @@
 [![Workflow: Test & Lint](https://github.com/CodesByChris/task-assignment-adaptivity/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/CodesByChris/task-assignment-adaptivity/actions/workflows/test-and-lint.yml)
+[![Codecov](https://codecov.io/gh/CodesByChris/task-assignment-adaptivity/branch/main/graph/badge.svg)](https://codecov.io/gh/CodesByChris/task-assignment-adaptivity)
 
 
 # Systemic Adaptivity in Task-Oriented Teams
