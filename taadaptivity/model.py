@@ -5,7 +5,7 @@ used by simply unpacking them into __init__, e.g.:
 abm = TaskModel(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"])
 """
 
-from typing import Dict
+from typing import Optional, TypedDict
 from mesa import Model
 from mesa.space import NetworkGrid
 from mesa.time import SimultaneousActivation
@@ -13,7 +13,11 @@ from networkx import complete_graph, DiGraph, set_edge_attributes
 from numpy import array
 from numpy.random import default_rng
 from scipy.stats import entropy
-from .agent import TaskAgent
+from .agent import AgentParams, TaskAgent
+
+
+ModelParams = TypedDict("ModelParams", {"num_agents": int, "t_new": float, "loc": float,
+                                        "sigma": float, "performance": float, "init_tasks": int})
 
 
 class TaskModel(Model):
@@ -30,7 +34,7 @@ class TaskModel(Model):
         datacollector: The DataCollector.
     """
 
-    def __init__(self, params: Dict[str, float], max_steps: int, seed: int | None = None):
+    def __init__(self, params: ModelParams, max_steps: int, seed: Optional[int] = None):
         """Initialize the instance.
 
         It initializes a numpy RNG to use within the ABM in the place of Mesa's self.random. Numpy
@@ -76,7 +80,7 @@ class TaskModel(Model):
         self.active_agents = []
         for agent_id in range(params["num_agents"]):
             # Sample agent's fitness
-            curr_agent_params = {
+            curr_agent_params: AgentParams = {
                 "performance": params["performance"],
                 "init_tasks": params["init_tasks"],
                 "fitness": self.rng.normal(loc=params["loc"], scale=params["sigma"], size=None),
@@ -122,7 +126,7 @@ class TaskModel(Model):
         return self.G.copy()
 
     @property
-    def fraction_failed_agents(self) -> int:
+    def fraction_failed_agents(self) -> float:
         """Ratio of failed agents, see Equation (2) in the paper."""
         return 1 - len(self.active_agents) / len(self.schedule.agents)
 

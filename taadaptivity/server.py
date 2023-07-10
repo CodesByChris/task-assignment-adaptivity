@@ -1,6 +1,6 @@
 """Interactive visualization server for the task assignment ABM."""
 
-from typing import List
+from typing import Optional, TypedDict
 from networkx import adjacency_matrix, DiGraph
 from matplotlib.cm import Reds  # pylint: disable=no-name-in-module
 from matplotlib.colors import to_hex
@@ -8,30 +8,25 @@ from mesa.visualization.modules import ChartModule, NetworkModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import NumberInput, Slider
 from scipy.stats import entropy
-from .model import TaskModel
+from .model import ModelParams, TaskModel
+
+
+# Types
+NodeLayout = TypedDict("NodeLayout", {"id": int, "size": float, "color": str})
+EdgeLayout = TypedDict("EdgeLayout", {"id": int, "source": int, "target": int,
+                                      "color": str, "width": float})
+Portrayal = TypedDict("Portrayal", {"nodes": list[NodeLayout], "edges": list[EdgeLayout]})
 
 
 # Network Rendering Function
-def rescale(values: List[float] | float, lower_in: float | None, upper_in: float | None,
-            lower_out: float, upper_out: float) -> List[float] | float:
-    """Rescales the provided values into the interval [lower_out, upper_out].
-
-    The rescaling maps the following interval bounds:
-    - lower_in --> lower_out
-    - upper_in --> upper_out
-    and all input values are assumed to be in [lower_in, upper_in].
+def rescale(value: float, lower_in: float, upper_in: float,
+            lower_out: float, upper_out: float) -> float:
+    """Rescales the provided value from the interval [lower_in, upper_in] to [lower_out, upper_out].
 
     Args:
-        values: The values to rescale. They are supposed to be in the interval [lower_in, upper_in].
-            Alternatively, values can be a single float, in which case this value is treated as a
-            list of one element. Moreover, then also the return value is a single float instead of a
-            list with one element.
-        lower_in: Lower bound of the source interval. If None, rescale takes `min(values)`. However,
-            you can manually set lower_in to a smaller value if needed. This can be useful, for
-            example, when rescale is called on multiple ranges, and you want to use a global minimum
-            value across all calls.
-        upper_in: Same as lower_in but for the upper bound of the source interval. If None, rescale
-            takes `max(values)`.
+        value: The value to rescale. It is supposed to be in the interval [lower_in, upper_in].
+        lower_in: Lower bound of the source interval.
+        upper_in: Same as lower_in but for the upper bound of the source interval.
         lower_out: Lower bound of the target interval.
         upper_out: Upper bound of the target interval.
 
@@ -39,33 +34,15 @@ def rescale(values: List[float] | float, lower_in: float | None, upper_in: float
         The rescaled values.
 
     Examples:
-        >>> rescale([1, 2, 3], None, None, 0, 1)
-        [0.0, 0.5, 1.0]
-        >>> rescale([1, 2, 3], lower_in = 0, upper_in = 4, lower_out = 0, upper_out = 1)
-        [0.25, 0.5, 0.75]
-        >>> rescale([1, 2, 3], None, None, 10, 30)
-        [10.0, 20.0, 30.0]
-        >>> rescale([1, 2, 3], lower_in = 0, upper_in = 4, lower_out = 10, upper_out = 30)
-        [15.0, 20.0, 25.0]
         >>> rescale(2, lower_in = 0, upper_in = 4, lower_out = 10, upper_out = 30)
         20.0
     """
-    # Case handling
-    is_single_value = isinstance(values, (int, float))
-    if is_single_value:
-        values = [values]
-    if lower_in is None:
-        lower_in = min(values)
-    if upper_in is None:
-        upper_in = max(values)
-
-    # Rescale values
-    unit_values = [(v - lower_in) / (upper_in - lower_in) for v in values]  # rescaled into [0, 1]
-    scaled_values = [u * (upper_out - lower_out) + lower_out for u in unit_values]
-    return scaled_values[0] if is_single_value else scaled_values
+    unit_value = (value - lower_in) / (upper_in - lower_in)  # rescaled into [0, 1]
+    return unit_value * (upper_out - lower_out) + lower_out
 
 
-def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=invalid-name
+# pylint: disable-next=invalid-name
+def network_portrayal(G: DiGraph, min_size=2, max_size=15) -> Portrayal:
     """Returns a plotting layout specifying how to plot the nodes and edges in G.
 
     Args:
@@ -80,14 +57,13 @@ def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=i
            specifying the plotting style of the respective nodes, i.e. "id", "size", and "color".
         2. "edges": Same as "nodes" but for the edges.
     """
-    portrayal = {}
+    portrayal: Portrayal = {"nodes": [], "edges": []}
 
     # Node renderer
     agents = [ags[0] for _, ags in G.nodes(data="agent")]
     min_fitness = min(a.fitness for a in agents)
     max_fitness = max(a.fitness for a in agents)
 
-    portrayal["nodes"] = []
     for agent_id in G.nodes:
         agent = G.nodes[agent_id]["agent"][0]
         portrayal["nodes"].append({
@@ -100,7 +76,6 @@ def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=i
     adj_matrix = adjacency_matrix(G)
     max_adj = adj_matrix.max()
 
-    portrayal["edges"] = []
     for edge_id, (source, target) in enumerate(G.edges):
         num_edges = int(adj_matrix[source, target])  # int() converts an np.int64 to Python int
         opacity = 0 if num_edges == 0 else rescale(num_edges, 0, max_adj, 0, 1)
@@ -109,7 +84,6 @@ def network_portrayal(G: DiGraph, min_size=2, max_size=15):  # pylint: disable=i
             "source": source,
             "target": target,
             "color": to_hex((0, 0, 0, opacity), keep_alpha=True),
-            "alpha": 0.5,
             "width": 2,
         })
 
@@ -140,7 +114,7 @@ class TaskModelViz(TaskModel):
         )
 
     @property
-    def relative_entropy(self):
+    def relative_entropy(self) -> float:
         """Normalize matrix entropy into [0, 1]."""
         # Maximum entropy: all edges equally likely except for selfloops, which have probability 0.
         num_free_entries = self.G.number_of_nodes() * (self.G.number_of_nodes() - 1)
@@ -148,7 +122,8 @@ class TaskModelViz(TaskModel):
         return self.matrix_entropy / entropy(equal_probs)
 
 
-def build_server(params, max_steps, seed, description=None):
+def build_server(params: ModelParams, max_steps: int, seed: int,
+                 description: Optional[str] = None) -> ModularServer:
     """Builds a ModularServer with the provided parameters as initial values of the sliders."""
     # Plot widgets
     network_plot = NetworkModule(network_portrayal, canvas_height=550, canvas_width=864)

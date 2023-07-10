@@ -1,11 +1,14 @@
 """Agent class."""
 
 from __future__ import annotations
-from typing import Dict, List, TYPE_CHECKING
+from typing import TypedDict, Optional, TYPE_CHECKING
 from mesa import Agent
 from numpy import exp, floor, zeros  # pylint: disable=no-name-in-module
 if TYPE_CHECKING:
     from .model import TaskModel
+
+
+AgentParams = TypedDict("AgentParams", {"fitness": float, "performance": float, "init_tasks": int})
 
 
 class TaskAgent(Agent):
@@ -18,10 +21,7 @@ class TaskAgent(Agent):
         has_failed: Boolean representing whether the agent has failed.
     """
 
-    def __init__(self,
-                 unique_id: int,
-                 model: TaskModel,
-                 agent_params: Dict[str, float]):
+    def __init__(self, unique_id: int, model: TaskModel, agent_params: AgentParams):
         """Initialize the instance.
 
         Args:
@@ -40,7 +40,7 @@ class TaskAgent(Agent):
         self._num_tasks_to_redistribute = None  # used for simultaneous update
         self._unsolved_tasks = None  # used for simultaneous update
 
-    def add_task(self, sender: TaskAgent | None):
+    def add_task(self, sender: Optional[TaskAgent]):
         """Add one task to the agent's task count and update the network."""
         assert not self.has_failed, "Attempted to assign a task to a failed agent."
         self.tasks += 1
@@ -123,7 +123,7 @@ class TaskAgent(Agent):
         self.tasks += self._unsolved_tasks
         self._unsolved_tasks = None
 
-    def _choose_recipients(self, num_recipients: int) -> List[TaskAgent]:
+    def _choose_recipients(self, num_recipients: int) -> list[TaskAgent]:
         """Sample recipents for tasks. see Equation (6) in paper.
 
         Recipients can be sampled multiple times, in which case they appear in the returned list
