@@ -4,6 +4,7 @@ networkx
 numpy
 pandas
 pytest
+pytest-cov
 scipy
 seaborn
 tqdm
