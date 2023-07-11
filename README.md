@@ -45,6 +45,36 @@ pytest
 ```
 
 
+## Citation
+
+You can cite the publication introducing the ABM:
+
+```
+@article{Casiraghi2021downside,
+    title={The Downside of Heterogeneity: How Established Relations Counteract Systemic Adaptivity in Tasks Assignments},
+    author={Casiraghi, Giona and Zingg, Christian and Schweitzer, Frank},
+    journal={Entropy},
+    volume={23},
+    number={12},
+    pages={1--12},
+    year={2021},
+    article-number={1677},
+    doi={10.3390/e23121677},
+    url={https://www.mdpi.com/1099-4300/23/12/1677},
+}
+```
+
+
+## Contributors
+
+The code in this repository has been developed by
+
+- Christian Zingg
+- Giona Casiraghi
+
+at the Chair of Systems Design, ETH Zurich.
+
+
 ## Comments
 
 - The code in this repository is developed independently from the original code of the ABM used for the paper.
