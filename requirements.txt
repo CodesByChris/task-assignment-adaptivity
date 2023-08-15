@@ -1,5 +1,5 @@
 matplotlib
-mesa
+mesa~=1.2
 networkx
 numpy
 pandas
