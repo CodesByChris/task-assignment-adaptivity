@@ -122,8 +122,8 @@ class TaskModelViz(TaskModel):
         return self.matrix_entropy / entropy(equal_probs)
 
 
-def build_server(params: ModelParams, max_steps: int, seed: int,
-                 description: Optional[str] = None) -> ModularServer:
+def server_factory(params: ModelParams, max_steps: int, seed: int,
+                   description: Optional[str] = None) -> ModularServer:
     """Builds a ModularServer with the provided parameters as initial values of the sliders."""
     # Plot widgets
     network_plot = NetworkModule(network_portrayal, canvas_height=550, canvas_width=864)

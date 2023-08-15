@@ -1,6 +1,6 @@
 """Starts the visualization with parameter values for which all agents fail."""
 
-from taadaptivity.server import build_server
+from taadaptivity.server import server_factory
 from taadaptivity.model import EXAMPLE_PARAMS
 
 
@@ -14,7 +14,7 @@ def main():
         who then also fail. At t=920, the performance of the remaining agents is not large enough to
         handle the workload, and they all fail, leaving the system with no active agents.
     """
-    build_server(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"], description=desc).launch()
+    server_factory(**EXAMPLE_PARAMS["SYSTEM_COLLAPSES"], description=desc).launch()
 
 
 if __name__ == "__main__":
